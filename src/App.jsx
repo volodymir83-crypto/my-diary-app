@@ -24,8 +24,7 @@ export default function App() {
   const [selectedDate, setSelectedDate] = useState(null)
   const [view,         setView]         = useState('calendar')
 
-  const selectedEntry  = selectedDate ? entries[selectedDate] ?? null : null
-  const selectedEvents = selectedDate ? events.filter(e => e.date === selectedDate) : []
+  const selectedEntry = selectedDate ? entries[selectedDate] ?? null : null
 
   function handleSelectDate(dateKey) {
     setSelectedDate(dateKey)
@@ -43,7 +42,7 @@ export default function App() {
       </header>
 
       {/* Main */}
-      <main className="flex-1 p-4 max-w-lg mx-auto w-full pb-20">
+      <main className="flex-1 flex flex-col p-4 max-w-lg mx-auto w-full pb-20">
         {view === 'calendar' && (
           <Calendar
             entries={entries}
@@ -69,6 +68,8 @@ export default function App() {
         {view === 'settings' && (
           <Categories
             categories={categories}
+            entries={entries}
+            events={events}
             onAdd={addCategory}
             onDelete={deleteCategory}
           />
@@ -101,7 +102,8 @@ export default function App() {
         <DiaryEntry
           dateKey={selectedDate}
           entry={selectedEntry}
-          events={selectedEvents}
+          entries={entries}
+          events={events}
           categories={categories}
           onSave={saveEntry}
           onDelete={deleteEntry}

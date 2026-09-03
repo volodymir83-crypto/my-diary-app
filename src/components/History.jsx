@@ -1,10 +1,17 @@
 import { useState } from 'react'
 import PropTypes from 'prop-types'
+import { truncateNote } from '../utils/notePreview'
 
 function formatDate(dateKey) {
   return new Date(dateKey + 'T00:00:00').toLocaleDateString('default', {
     weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
   })
+}
+
+function daysBetween(dateKeyA, dateKeyB) {
+  const a = new Date(dateKeyA + 'T00:00:00')
+  const b = new Date(dateKeyB + 'T00:00:00')
+  return Math.round((a - b) / (1000 * 60 * 60 * 24))
 }
 
 export default function History({ entries, categories, onSelectDate }) {
@@ -53,30 +60,49 @@ export default function History({ entries, categories, onSelectDate }) {
         </div>
       ) : (
         <ul className="flex flex-col gap-3" aria-label={`${cat?.label} entries`}>
-          {filtered.map(([dateKey, entry]) => (
-            <li key={dateKey}>
-              <button
-                onClick={() => onSelectDate(dateKey)}
-                aria-label={`Open entry for ${formatDate(dateKey)}`}
-                className="w-full text-left bg-white rounded-xl p-3 shadow-sm border border-gray-100 hover:border-blue-300 active:bg-gray-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <span
-                    className="w-3 h-3 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: cat?.color }}
-                    aria-hidden="true"
-                  />
-                  <time dateTime={dateKey} className="text-xs font-medium text-gray-500">
-                    {formatDate(dateKey)}
-                  </time>
-                </div>
-                {entry.note
-                  ? <p className="text-sm text-gray-700 line-clamp-2 ml-5">{entry.note}</p>
-                  : <p className="text-sm text-gray-400 italic ml-5">No notes</p>
-                }
-              </button>
-            </li>
-          ))}
+          {filtered.map(([dateKey, entry], index) => {
+            const previousDateKey = index + 1 < filtered.length ? filtered[index + 1][0] : null
+            const daysSincePrevious = previousDateKey ? daysBetween(dateKey, previousDateKey) : null
+            const { text: notePreview, truncated: noteTruncated } = truncateNote(entry.note)
+
+            return (
+              <li key={dateKey}>
+                <button
+                  onClick={() => onSelectDate(dateKey)}
+                  aria-label={`Open entry for ${formatDate(dateKey)}${daysSincePrevious !== null ? `, ${daysSincePrevious} day${daysSincePrevious === 1 ? '' : 's'} since the previous ${cat?.label} entry` : ''}${noteTruncated ? ', note truncated, open to read the full entry' : ''}`}
+                  className="w-full text-left bg-white rounded-xl p-3 shadow-sm border border-gray-100 hover:border-blue-300 active:bg-gray-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                >
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <span
+                      className="w-3 h-3 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: cat?.color }}
+                      aria-hidden="true"
+                    />
+                    <time dateTime={dateKey} className="text-xs font-medium text-gray-500">
+                      {formatDate(dateKey)}
+                    </time>
+                    {daysSincePrevious !== null && (
+                      <span className="text-xs text-gray-400" aria-hidden="true">
+                        · {daysSincePrevious} {daysSincePrevious === 1 ? 'day' : 'days'} since last
+                      </span>
+                    )}
+                  </div>
+                  {entry.note ? (
+                    <div className="ml-5">
+                      <p className="text-sm text-gray-700 whitespace-pre-line">{notePreview}</p>
+                      {noteTruncated && (
+                        <span className="text-xs text-blue-600 font-medium" aria-hidden="true">
+                          Read more
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-400 italic ml-5">No notes</p>
+                  )}
+                </button>
+              </li>
+            )
+          })}
         </ul>
       )}
 

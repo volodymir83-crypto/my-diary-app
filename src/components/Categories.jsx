@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import PropTypes from 'prop-types'
+import { getUsedColors } from '../utils/colorUsage'
 
 const COLOR_PALETTE = [
   '#fca5a5', '#fb923c', '#fde68a', '#86efac',
@@ -9,14 +10,22 @@ const COLOR_PALETTE = [
 
 const DEFAULT_IDS = ['legs', 'pull', 'push']
 
-export default function Categories({ categories, onAdd, onDelete }) {
+export default function Categories({ categories, entries, events, onAdd, onDelete }) {
+  const usedColors = getUsedColors({ categories, entries, events })
+  const availableColors = COLOR_PALETTE.filter(c => !usedColors.has(c))
+
   const [label, setLabel] = useState('')
-  const [color, setColor] = useState(COLOR_PALETTE[0])
+  const [selectedColor, setSelectedColor] = useState(null)
+
+  const color = selectedColor && availableColors.includes(selectedColor)
+    ? selectedColor
+    : availableColors[0] ?? null
 
   function handleAdd() {
-    if (!label.trim()) return
+    if (!label.trim() || !color) return
     onAdd(label.trim(), color)
     setLabel('')
+    setSelectedColor(null)
   }
 
   return (
@@ -85,30 +94,36 @@ export default function Categories({ categories, onAdd, onDelete }) {
 
           <div>
             <p className="text-xs text-gray-500 mb-2">Color</p>
-            <div
-              className="flex flex-wrap gap-2"
-              role="group"
-              aria-label="Category color picker"
-            >
-              {COLOR_PALETTE.map(c => (
-                <button
-                  key={c}
-                  onClick={() => setColor(c)}
-                  aria-label={`Color ${c}${color === c ? ', selected' : ''}`}
-                  aria-pressed={color === c}
-                  className={[
-                    'w-8 h-8 rounded-full transition',
-                    color === c ? 'ring-2 ring-offset-2 ring-blue-500 scale-110' : '',
-                  ].join(' ')}
-                  style={{ backgroundColor: c }}
-                />
-              ))}
-            </div>
+            {availableColors.length > 0 ? (
+              <div
+                className="flex flex-wrap gap-2"
+                role="group"
+                aria-label="Category color picker"
+              >
+                {availableColors.map(c => (
+                  <button
+                    key={c}
+                    onClick={() => setSelectedColor(c)}
+                    aria-label={`Color ${c}${color === c ? ', selected' : ''}`}
+                    aria-pressed={color === c}
+                    className={[
+                      'w-8 h-8 rounded-full transition',
+                      color === c ? 'ring-2 ring-offset-2 ring-blue-500 scale-110' : '',
+                    ].join(' ')}
+                    style={{ backgroundColor: c }}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2">
+                Every preset color is already used by a category, note, or event. Delete one of those to free up a color before adding a new category.
+              </p>
+            )}
           </div>
 
           <button
             onClick={handleAdd}
-            disabled={!label.trim()}
+            disabled={!label.trim() || !color}
             className="w-full bg-blue-500 hover:bg-blue-600 active:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium rounded-xl py-2.5 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           >
             + Add Category
@@ -125,6 +140,21 @@ Categories.propTypes = {
     PropTypes.shape({
       id:    PropTypes.string.isRequired,
       label: PropTypes.string.isRequired,
+      color: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  entries: PropTypes.objectOf(
+    PropTypes.shape({
+      note:     PropTypes.string,
+      color:    PropTypes.string,
+      category: PropTypes.string,
+    })
+  ).isRequired,
+  events: PropTypes.arrayOf(
+    PropTypes.shape({
+      id:    PropTypes.number.isRequired,
+      date:  PropTypes.string.isRequired,
+      title: PropTypes.string.isRequired,
       color: PropTypes.string.isRequired,
     })
   ).isRequired,

@@ -1,7 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react'
 import PropTypes from 'prop-types'
-
-
+import { truncateNote } from '../utils/notePreview'
 
 function formatDate(dateKey) {
   return new Date(dateKey + 'T00:00:00').toLocaleDateString('default', {
@@ -21,6 +20,8 @@ function highlight(text, query) {
 
 export default function Search({ entries, events, categories, onSelectDate }) {
   const [query, setQuery] = useState('')
+  const inputRef = useRef(null)
+  useEffect(() => { inputRef.current?.focus() }, [])
 
   const trimmed = query.trim().toLowerCase()
 
@@ -29,14 +30,12 @@ export default function Search({ entries, events, categories, onSelectDate }) {
 
     const matched = {}
 
-    // search through notes
     Object.entries(entries).forEach(([dateKey, entry]) => {
       if (entry.note?.toLowerCase().includes(trimmed)) {
         matched[dateKey] = { ...entry, matchedEvents: [] }
       }
     })
 
-    // search through event titles
     events.forEach(event => {
       if (event.title.toLowerCase().includes(trimmed)) {
         if (!matched[event.date]) {
@@ -51,11 +50,8 @@ export default function Search({ entries, events, categories, onSelectDate }) {
     })
 
     return Object.entries(matched)
-      .sort(([a], [b]) => b.localeCompare(a)) // newest first
+      .sort(([a], [b]) => b.localeCompare(a))
   }, [trimmed, entries, events])
-
-const inputRef = useRef(null)
-useEffect(() => { inputRef.current?.focus() }, [])
 
   return (
     <section aria-label="Search diary">
@@ -75,7 +71,7 @@ useEffect(() => { inputRef.current?.focus() }, [])
           placeholder="Search notes and events..."
           aria-label="Search notes and events"
           ref={inputRef}
-className="w-full rounded-xl border border-gray-300 pl-9 pr-9 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full rounded-xl border border-gray-300 pl-9 pr-9 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         {query && (
           <button
@@ -115,11 +111,13 @@ className="w-full rounded-xl border border-gray-300 pl-9 pr-9 py-2.5 text-sm foc
         <ul className="flex flex-col gap-3" aria-label="Search results">
           {results.map(([dateKey, entry]) => {
             const cat = categories.find(c => c.id === entry?.category)
+            const { text: notePreview, truncated: noteTruncated } = truncateNote(entry?.note)
+
             return (
               <li key={dateKey}>
                 <button
                   onClick={() => onSelectDate(dateKey)}
-                  aria-label={`Open entry for ${formatDate(dateKey)}`}
+                  aria-label={`Open entry for ${formatDate(dateKey)}${noteTruncated ? ', note truncated, open to read the full entry' : ''}`}
                   className="w-full text-left bg-white rounded-xl p-3 shadow-sm border border-gray-100 hover:border-blue-300 active:bg-gray-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                 >
                   {/* Date + category */}
@@ -141,9 +139,16 @@ className="w-full rounded-xl border border-gray-300 pl-9 pr-9 py-2.5 text-sm foc
 
                   {/* Note with highlighted match */}
                   {entry?.note && (
-                    <p className="text-sm text-gray-700 line-clamp-2 ml-5">
-                      {highlight(entry.note, query.trim())}
-                    </p>
+                    <div className="ml-5">
+                      <p className="text-sm text-gray-700 whitespace-pre-line">
+                        {highlight(notePreview, query.trim())}
+                      </p>
+                      {noteTruncated && (
+                        <span className="text-xs text-blue-600 font-medium" aria-hidden="true">
+                          Read more
+                        </span>
+                      )}
+                    </div>
                   )}
 
                   {/* Matched events */}
@@ -191,7 +196,7 @@ Search.propTypes = {
       color: PropTypes.string.isRequired,
     })
   ).isRequired,
- categories: PropTypes.arrayOf(
+  categories: PropTypes.arrayOf(
     PropTypes.shape({
       id:    PropTypes.string.isRequired,
       label: PropTypes.string.isRequired,

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import PropTypes from 'prop-types'
+import { getUsedColors } from '../utils/colorUsage'
 
 const ENTRY_COLORS = [
   { label: 'None',   value: null,      bg: 'bg-white border-2 border-gray-300' },
@@ -13,21 +14,42 @@ const ENTRY_COLORS = [
 
 const EVENT_COLORS = [
   { label: 'Red',    value: '#f87171' },
-  { label: 'Blue',   value: '#60a5fa' },
+  { label: 'Orange', value: '#fbbf24' },
+  { label: 'Yellow', value: '#facc15' },
   { label: 'Green',  value: '#4ade80' },
-  { label: 'Purple', value: '#c084fc' },
-  { label: 'Orange', value: '#fb923c' },
+  { label: 'Teal',   value: '#2dd4bf' },
+  { label: 'Cyan',   value: '#22d3ee' },
+  { label: 'Blue',   value: '#60a5fa' },
+  { label: 'Indigo', value: '#818cf8' },
+  { label: 'Purple', value: '#a78bfa' },
+  { label: 'Pink',   value: '#f472b6' },
 ]
 
 export default function DiaryEntry({
-  dateKey, entry, events, categories,
+  dateKey, entry, entries, events, categories,
   onSave, onDelete, onAddEvent, onDeleteEvent, onClose
 }) {
-  const [note,       setNote]       = useState(entry?.note     || '')
-  const [color,      setColor]      = useState(entry?.color    || null)
-  const [category,   setCategory]   = useState(entry?.category || null)
-  const [eventTitle, setEventTitle] = useState('')
-  const [eventColor, setEventColor] = useState(EVENT_COLORS[0].value)
+  const [note,               setNote]               = useState(entry?.note     || '')
+  const [color,               setColor]              = useState(entry?.color    || null)
+  const [category,            setCategory]           = useState(entry?.category || null)
+  const [eventTitle,          setEventTitle]         = useState('')
+  const [selectedEventColor,  setSelectedEventColor] = useState(null)
+
+  const dayEvents = events.filter(e => e.date === dateKey)
+
+  // Colors already claimed by a category, a manually-highlighted note, or an
+  // event elsewhere in the app. This entry's own saved color is excluded so
+  // it doesn't vanish from the list while you're still editing it.
+  const usedColors = getUsedColors({ categories, entries, events, excludeDateKey: dateKey })
+
+  const availableEntryColors = ENTRY_COLORS.filter(
+    c => c.value === null || !usedColors.has(c.value)
+  )
+  const availableEventColors = EVENT_COLORS.filter(c => !usedColors.has(c.value))
+
+  const eventColor = selectedEventColor && availableEventColors.some(c => c.value === selectedEventColor)
+    ? selectedEventColor
+    : availableEventColors[0]?.value ?? null
 
   const formattedDate = new Date(dateKey + 'T00:00:00').toLocaleDateString('default', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
@@ -55,9 +77,10 @@ export default function DiaryEntry({
   }
 
   function handleAddEvent() {
-    if (!eventTitle.trim()) return
+    if (!eventTitle.trim() || !eventColor) return
     onAddEvent(dateKey, eventTitle.trim(), eventColor)
     setEventTitle('')
+    setSelectedEventColor(null)
   }
 
   return (
@@ -131,7 +154,7 @@ export default function DiaryEntry({
                 Highlight color
               </p>
               <div className="flex gap-2 flex-wrap" role="group" aria-labelledby="color-label">
-                {ENTRY_COLORS.map(c => (
+                {availableEntryColors.map(c => (
                   <button
                     key={c.label}
                     onClick={() => setColor(c.value)}
@@ -145,6 +168,11 @@ export default function DiaryEntry({
                   />
                 ))}
               </div>
+              {availableEntryColors.length === 1 && (
+                <p className="mt-2 text-xs text-amber-600">
+                  Every highlight color is already used by a category, note, or event. Pick a workout type above, or free up a color elsewhere.
+                </p>
+              )}
             </section>
           )}
 
@@ -191,9 +219,9 @@ export default function DiaryEntry({
             <h3 id="events-label" className="text-sm font-medium text-gray-700 mb-2">
               Events
             </h3>
-            {events.length > 0 && (
+            {dayEvents.length > 0 && (
               <ul aria-label="Events for this day" className="flex flex-col gap-2 mb-3">
-                {events.map(event => (
+                {dayEvents.map(event => (
                   <li
                     key={event.id}
                     className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2"
@@ -226,24 +254,30 @@ export default function DiaryEntry({
                 aria-label="New event title"
                 className="w-full rounded-xl border border-gray-300 p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <div className="flex gap-2 items-center" role="group" aria-label="Event color">
-                {EVENT_COLORS.map(c => (
-                  <button
-                    key={c.label}
-                    onClick={() => setEventColor(c.value)}
-                    aria-label={`${c.label} event color${eventColor === c.value ? ', selected' : ''}`}
-                    aria-pressed={eventColor === c.value}
-                    className={[
-                      'w-7 h-7 rounded-full transition',
-                      eventColor === c.value ? 'ring-2 ring-offset-2 ring-blue-500 scale-110' : '',
-                    ].join(' ')}
-                    style={{ backgroundColor: c.value }}
-                  />
-                ))}
-              </div>
+              {availableEventColors.length > 0 ? (
+                <div className="flex gap-2 items-center flex-wrap" role="group" aria-label="Event color">
+                  {availableEventColors.map(c => (
+                    <button
+                      key={c.label}
+                      onClick={() => setSelectedEventColor(c.value)}
+                      aria-label={`${c.label} event color${eventColor === c.value ? ', selected' : ''}`}
+                      aria-pressed={eventColor === c.value}
+                      className={[
+                        'w-7 h-7 rounded-full transition',
+                        eventColor === c.value ? 'ring-2 ring-offset-2 ring-blue-500 scale-110' : '',
+                      ].join(' ')}
+                      style={{ backgroundColor: c.value }}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-amber-600">
+                  Every event color is already in use. Delete a category, note highlight, or event to free one up.
+                </p>
+              )}
               <button
                 onClick={handleAddEvent}
-                disabled={!eventTitle.trim()}
+                disabled={!eventTitle.trim() || !eventColor}
                 className="w-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 disabled:opacity-40 disabled:cursor-not-allowed text-gray-700 font-medium rounded-xl py-2 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
               >
                 + Add Event
@@ -264,9 +298,17 @@ DiaryEntry.propTypes = {
     color:    PropTypes.string,
     category: PropTypes.string,
   }),
+  entries: PropTypes.objectOf(
+    PropTypes.shape({
+      note:     PropTypes.string,
+      color:    PropTypes.string,
+      category: PropTypes.string,
+    })
+  ).isRequired,
   events: PropTypes.arrayOf(
     PropTypes.shape({
       id:    PropTypes.number.isRequired,
+      date:  PropTypes.string.isRequired,
       title: PropTypes.string.isRequired,
       color: PropTypes.string.isRequired,
     })

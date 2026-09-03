@@ -1,5 +1,6 @@
 import { useState } from "react"
 import DayCell from "./DayCell"
+import { useSwipeable } from "react-swipeable"
 import PropTypes from 'prop-types'
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
@@ -19,6 +20,8 @@ export default function Calendar({ entries, events, onSelectDate }) {
   const [month, setMonth] = useState(today.getMonth())
   
   const isCurrentMonth = year === today.getFullYear() && month === today.getMonth()
+  const isFuture = year > today.getFullYear() ||
+    (year === today.getFullYear() && month > today.getMonth())
   const daysInMonth  = getDaysInMonth(year, month)
   const firstDaySlot = getFirstDayOfMonth(year, month)
 
@@ -35,6 +38,13 @@ export default function Calendar({ entries, events, onSelectDate }) {
     if (month === 11) { setMonth(0); setYear(y => y + 1) }
     else setMonth(m => m + 1)
   }
+
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft:  () => nextMonth(),
+    onSwipedRight: () => prevMonth(),
+    preventScrollOnSwipe: false,
+    trackMouse: false,
+  })
 
   const cells = []
 
@@ -68,7 +78,11 @@ export default function Calendar({ entries, events, onSelectDate }) {
   }
 
   return (
-    <section aria-label="Calendar">
+    <section
+      {...swipeHandlers}
+      aria-label="Calendar"
+      className="flex-1 flex flex-col -mx-4 px-4 sm:mx-0 sm:px-0"
+    >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <button
@@ -93,10 +107,18 @@ export default function Calendar({ entries, events, onSelectDate }) {
           <button
             onClick={() => { setYear(today.getFullYear()); setMonth(today.getMonth()) }}
             aria-label="Go to current month"
-            className="text-xs font-medium text-blue-600 hover:text-blue-700 px-3 py-1 rounded-full hover:bg-blue-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            className="text-base font-medium text-blue-600 hover:text-blue-700 px-4 py-2 rounded-full hover:bg-blue-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
           >
-            ↩ Today
-          </button>
+            {isFuture ? (
+              <>
+                <span className="text-3xl align-baseline" aria-hidden="true">↩</span>{' '}Today
+              </>
+            ) : (
+              <>
+                Today{' '}<span className="text-3xl align-baseline" aria-hidden="true">↪</span>
+              </>
+            )}
+            </button>
         </div>
       )}
 
