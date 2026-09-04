@@ -5,7 +5,7 @@ import DiaryEntry from './components/DiaryEntry'
 import History    from './components/History'
 import Search     from './components/Search'
 import Categories from './components/Categories'
-
+import DataBackup from './components/DataBackup'
 const TABS = [
   { key: 'calendar',   icon: '📅', label: 'Calendar'   },
   { key: 'history',    icon: '📋', label: 'History'    },
@@ -19,6 +19,7 @@ export default function App() {
     saveEntry, deleteEntry,
     addEvent, deleteEvent,
     addCategory, deleteCategory,
+    importData,
   } = useDiary()
 
   const [selectedDate, setSelectedDate] = useState(null)
@@ -66,13 +67,21 @@ export default function App() {
           />
         )}
         {view === 'settings' && (
-          <Categories
-            categories={categories}
-            entries={entries}
-            events={events}
-            onAdd={addCategory}
-            onDelete={deleteCategory}
-          />
+          <div className="flex flex-col gap-6">
+            <Categories
+              categories={categories}
+              entries={entries}
+              events={events}
+              onAdd={addCategory}
+              onDelete={deleteCategory}
+            />
+            <DataBackup
+              entries={entries}
+              events={events}
+              categories={categories}
+              onImport={importData}
+            />
+          </div>
         )}
       </main>
 

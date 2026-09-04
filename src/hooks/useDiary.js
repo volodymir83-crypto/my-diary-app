@@ -70,10 +70,31 @@ export function useDiary() {
     setCategories(prev => prev.filter(c => c.id !== id))
   }
 
+  function importData({ entries: importedEntries, events: importedEvents, categories: importedCategories }) {
+    setEntries(prev => ({ ...prev, ...importedEntries }))
+
+    setEvents(prev => {
+      const existingIds = new Set(prev.map(e => e.id))
+      const newOnes = importedEvents.filter(e => !existingIds.has(e.id))
+      return [...prev, ...newOnes]
+    })
+
+    setCategories(prev => {
+      const merged = [...prev]
+      importedCategories.forEach(cat => {
+        const idx = merged.findIndex(c => c.id === cat.id)
+        if (idx === -1) merged.push(cat)
+        else merged[idx] = cat
+      })
+      return merged
+    })
+  }
+
   return {
     entries, events, categories,
     saveEntry, deleteEntry,
     addEvent, deleteEvent,
     addCategory, deleteCategory,
+    importData,
   }
 }
