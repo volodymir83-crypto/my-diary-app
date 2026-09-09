@@ -1,0 +1,3486 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+.github/
+  workflows/
+    build-apk.yml
+public/
+  vite.svg
+src/
+  assets/
+    react.svg
+  components/
+    Calendar.jsx
+    Categories.jsx
+    DataBackup.jsx
+    DayCell.jsx
+    DiaryEntry.jsx
+    History.jsx
+    Search.jsx
+  hooks/
+    useDiary.js
+  utils/
+    colorUsage.js
+    notePreview.js
+  App.css
+  App.jsx
+  devtools.js
+  index.css
+  main.jsx
+.gitignore
+capacitor.config.json
+diary_src.txt
+eslint.config.js
+index.html
+keystore-base64.txt
+my-diary-release.keystore
+package.json
+pnpm-workspace.yaml
+postcss.config.js
+README.md
+tailwind.config.js
+vite.config.js
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/devtools.js">
+// Dev-only tooling: mobile console (eruda) + accessibility auditing (axe-core)
+// + a lightweight React component inspector. Gated behind import.meta.env.DEV
+// and loaded via dynamic import, so Vite strips this whole module out of
+// production builds — none of it ships in the installed app.
+export function initDevTools() {
+  if (!import.meta.env.DEV) return
+
+  // Temporarily hide touch support from eruda BEFORE it loads.
+  // Eruda evaluates feature detection the moment it is imported.
+  // We must mask touch support before triggering the dynamic import so it
+  // binds click/mouse-compatible listeners — letting a Bluetooth mouse work.
+  const originalTouch = window.ontouchstart
+  delete window.ontouchstart
+
+  // Modern devices also use maxTouchPoints for touch detection.
+  // We temporarily override the read-only property using defineProperty.
+  const originalMaxTouchPoints = navigator.maxTouchPoints
+  if (navigator.maxTouchPoints > 0) {
+    Object.defineProperty(navigator, 'maxTouchPoints', { 
+      value: 0, 
+      configurable: true 
+    })
+  }
+
+  Promise.all([import('eruda'), import('axe-core')]).then(([erudaModule, axeModule]) => {
+    const eruda = erudaModule.default
+    const axe = axeModule.default
+
+    eruda.init()
+
+    // Restore touch support immediately after Eruda initializes
+    window.ontouchstart = originalTouch !== undefined ? originalTouch : null
+    if (originalMaxTouchPoints > 0) {
+      delete navigator.maxTouchPoints // Deleting our custom property reveals the native one
+    }
+
+    const IMPACT_COLOR = {
+      critical: '#dc2626',
+      serious:  '#ea580c',
+      moderate: '#ca8a04',
+      minor:    '#65a30d',
+    }
+
+    function drawBox(rect, color, label) {
+      const box = document.createElement('div')
+      box.setAttribute('data-axe-highlight', 'true')
+      box.style.cssText = `
+        position: absolute;
+        top: ${rect.top + window.scrollY}px;
+        left: ${rect.left + window.scrollX}px;
+        width: ${rect.width}px;
+        height: ${rect.height}px;
+        border: 2px solid ${color};
+        border-radius: 4px;
+        pointer-events: none;
+        z-index: 999999;
+        box-sizing: border-box;
+      `
+      if (label) {
+        const tag = document.createElement('div')
+        tag.textContent = label
+        tag.style.cssText = `
+          position: absolute;
+          top: -18px;
+          left: 0;
+          background: ${color};
+          color: white;
+          font-size: 10px;
+          padding: 1px 4px;
+          border-radius: 2px;
+          white-space: nowrap;
+          font-family: monospace;
+        `
+        box.appendChild(tag)
+      }
+      document.body.appendChild(box)
+    }
+
+    function clearHighlights() {
+      document.querySelectorAll('[data-axe-highlight]').forEach(el => el.remove())
+    }
+
+    async function runAxe() {
+      // Clear BEFORE scanning — otherwise the previous run's own highlight
+      // boxes are still in the DOM and axe flags them as new violations.
+      clearHighlights()
+      const results = await axe.run()
+      console.clear()
+
+      if (results.violations.length === 0) {
+        console.log('[a11y] No accessibility violations found')
+        return results
+      }
+
+      console.log(`[a11y] ${results.violations.length} violation(s) found — outlined on screen:`)
+      results.violations.forEach(v => {
+        console.log(`  [${v.impact}] ${v.id}: ${v.description}`)
+        console.log(`    Help: ${v.helpUrl}`)
+        v.nodes.forEach(node => {
+          console.log(`    Element: ${node.html}`)
+          try {
+            const el = document.querySelector(node.target[0])
+            if (el) drawBox(el.getBoundingClientRect(), IMPACT_COLOR[v.impact] || '#dc2626', v.id)
+          } catch {
+            // Selector didn't resolve — skip drawing for this node.
+          }
+        })
+      })
+
+      return results
+    }
+
+    let observer = null
+
+    function stopAxe() {
+      if (observer) {
+        observer.disconnect()
+        observer = null
+      }
+      clearHighlights()
+      console.log('[a11y] Stopped. Reload the page to restart automatic checking, or call runAxe() to check manually.')
+    }
+
+    window.runAxe = runAxe
+    window.stopAxe = stopAxe
+
+    // Initial check after the app settles.
+    setTimeout(runAxe, 1000)
+
+    // Re-check automatically whenever the app's content changes — covers
+    // switching tabs, opening/closing modals, etc. Debounced so a burst of
+    // renders (like a full tab switch) only triggers one audit.
+    const root = document.getElementById('root')
+    if (root) {
+      let debounceTimer = null
+      observer = new MutationObserver(() => {
+        clearTimeout(debounceTimer)
+        debounceTimer = setTimeout(runAxe, 500)
+      })
+      observer.observe(root, { childList: true, subtree: true })
+    }
+
+    // --- React component inspector -----------------------------------
+    // Not an official API — reads React's internal fiber tree, which is
+    // attached to DOM nodes as a property starting with "__reactFiber$"
+    // whenever React runs in development mode. Best-effort, but reliable
+    // enough for this purpose.
+    function getFiber(node) {
+      const key = Object.keys(node).find(k => k.startsWith('__reactFiber$'))
+      return key ? node[key] : null
+    }
+
+    function getComponentChain(fiber) {
+      const names = []
+      let current = fiber
+      while (current) {
+        const type = current.type
+        if (typeof type === 'string') names.push(type)
+        else if (typeof type === 'function') names.push(type.displayName || type.name || 'Anonymous')
+        current = current.return
+      }
+      return names.reverse()
+    }
+
+    let inspecting = false
+    let inspectListener = null
+
+    function startReactInspect() {
+      if (inspecting) return
+      inspecting = true
+
+      inspectListener = e => {
+        e.preventDefault()
+        e.stopPropagation()
+
+        const fiber = getFiber(e.target)
+        if (!fiber) {
+          console.log('[react] No React fiber found on this element')
+        } else {
+          console.log(`[react] ${getComponentChain(fiber).join(' > ')}`)
+          const cs = window.getComputedStyle(e.target)
+          const rect = e.target.getBoundingClientRect()
+          console.log(`[style] background: ${cs.backgroundColor}`)
+          console.log(`[style] color: ${cs.color}`)
+          console.log(`[style] box-shadow: ${cs.boxShadow}`)
+          console.log(`[style] border-radius: ${cs.borderRadius}`)
+          console.log(`[style] border: ${cs.borderTopWidth} ${cs.borderTopStyle} ${cs.borderTopColor}`)
+          console.log(`[style] padding: ${cs.paddingTop} ${cs.paddingRight} ${cs.paddingBottom} ${cs.paddingLeft}`)
+          console.log(`[style] font: ${cs.fontSize} / ${cs.fontWeight}`)
+          console.log(`[style] size: ${Math.round(rect.width)} × ${Math.round(rect.height)}`)
+          const box = document.createElement('div')
+          box.style.cssText = `
+            position: absolute;
+            top: ${e.target.getBoundingClientRect().top + window.scrollY}px;
+            left: ${e.target.getBoundingClientRect().left + window.scrollX}px;
+            width: ${e.target.getBoundingClientRect().width}px;
+            height: ${e.target.getBoundingClientRect().height}px;
+            border: 2px solid #2563eb;
+            border-radius: 4px;
+            pointer-events: none;
+            z-index: 999999;
+            box-sizing: border-box;
+          `
+          document.body.appendChild(box)
+          setTimeout(() => box.remove(), 2000)
+        }
+
+        stopReactInspect()
+      }
+
+      document.addEventListener('click', inspectListener, true)
+      console.log('[react] Tap any element on screen to see its component chain. Call stopReactInspect() to cancel without tapping.')
+    }
+
+    function stopReactInspect() {
+      if (!inspecting) return
+      inspecting = false
+      document.removeEventListener('click', inspectListener, true)
+      inspectListener = null
+    }
+
+    window.startReactInspect = startReactInspect
+    window.stopReactInspect = stopReactInspect
+
+    console.log('[devtools] eruda ready. runAxe() / stopAxe() for accessibility, startReactInspect() to tap an element and see its component chain.')
+  })
+}
+</file>
+
+<file path="public/vite.svg">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="31.88" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 257"><defs><linearGradient id="IconifyId1813088fe1fbc01fb466" x1="-.828%" x2="57.636%" y1="7.652%" y2="78.411%"><stop offset="0%" stop-color="#41D1FF"></stop><stop offset="100%" stop-color="#BD34FE"></stop></linearGradient><linearGradient id="IconifyId1813088fe1fbc01fb467" x1="43.376%" x2="50.316%" y1="2.242%" y2="89.03%"><stop offset="0%" stop-color="#FFEA83"></stop><stop offset="8.333%" stop-color="#FFDD35"></stop><stop offset="100%" stop-color="#FFA800"></stop></linearGradient></defs><path fill="url(#IconifyId1813088fe1fbc01fb466)" d="M255.153 37.938L134.897 252.976c-2.483 4.44-8.862 4.466-11.382.048L.875 37.958c-2.746-4.814 1.371-10.646 6.827-9.67l120.385 21.517a6.537 6.537 0 0 0 2.322-.004l117.867-21.483c5.438-.991 9.574 4.796 6.877 9.62Z"></path><path fill="url(#IconifyId1813088fe1fbc01fb467)" d="M185.432.063L96.44 17.501a3.268 3.268 0 0 0-2.634 3.014l-5.474 92.456a3.268 3.268 0 0 0 3.997 3.378l24.777-5.718c2.318-.535 4.413 1.507 3.936 3.838l-7.361 36.047c-.495 2.426 1.782 4.5 4.151 3.78l15.304-4.649c2.372-.72 4.652 1.36 4.15 3.788l-11.698 56.621c-.732 3.542 3.979 5.473 5.943 2.437l1.313-2.028l72.516-144.72c1.215-2.423-.88-5.186-3.54-4.672l-25.505 4.922c-2.396.462-4.435-1.77-3.759-4.114l16.646-57.705c.677-2.35-1.37-4.583-3.769-4.113Z"></path></svg>
+</file>
+
+<file path="src/assets/react.svg">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="35.93" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 228"><path fill="#00D8FF" d="M210.483 73.824a171.49 171.49 0 0 0-8.24-2.597c.465-1.9.893-3.777 1.273-5.621c6.238-30.281 2.16-54.676-11.769-62.708c-13.355-7.7-35.196.329-57.254 19.526a171.23 171.23 0 0 0-6.375 5.848a155.866 155.866 0 0 0-4.241-3.917C100.759 3.829 77.587-4.822 63.673 3.233C50.33 10.957 46.379 33.89 51.995 62.588a170.974 170.974 0 0 0 1.892 8.48c-3.28.932-6.445 1.924-9.474 2.98C17.309 83.498 0 98.307 0 113.668c0 15.865 18.582 31.778 46.812 41.427a145.52 145.52 0 0 0 6.921 2.165a167.467 167.467 0 0 0-2.01 9.138c-5.354 28.2-1.173 50.591 12.134 58.266c13.744 7.926 36.812-.22 59.273-19.855a145.567 145.567 0 0 0 5.342-4.923a168.064 168.064 0 0 0 6.92 6.314c21.758 18.722 43.246 26.282 56.54 18.586c13.731-7.949 18.194-32.003 12.4-61.268a145.016 145.016 0 0 0-1.535-6.842c1.62-.48 3.21-.974 4.76-1.488c29.348-9.723 48.443-25.443 48.443-41.52c0-15.417-17.868-30.326-45.517-39.844Zm-6.365 70.984c-1.4.463-2.836.91-4.3 1.345c-3.24-10.257-7.612-21.163-12.963-32.432c5.106-11 9.31-21.767 12.459-31.957c2.619.758 5.16 1.557 7.61 2.4c23.69 8.156 38.14 20.213 38.14 29.504c0 9.896-15.606 22.743-40.946 31.14Zm-10.514 20.834c2.562 12.94 2.927 24.64 1.23 33.787c-1.524 8.219-4.59 13.698-8.382 15.893c-8.067 4.67-25.32-1.4-43.927-17.412a156.726 156.726 0 0 1-6.437-5.87c7.214-7.889 14.423-17.06 21.459-27.246c12.376-1.098 24.068-2.894 34.671-5.345a134.17 134.17 0 0 1 1.386 6.193ZM87.276 214.515c-7.882 2.783-14.16 2.863-17.955.675c-8.075-4.657-11.432-22.636-6.853-46.752a156.923 156.923 0 0 1 1.869-8.499c10.486 2.32 22.093 3.988 34.498 4.994c7.084 9.967 14.501 19.128 21.976 27.15a134.668 134.668 0 0 1-4.877 4.492c-9.933 8.682-19.886 14.842-28.658 17.94ZM50.35 144.747c-12.483-4.267-22.792-9.812-29.858-15.863c-6.35-5.437-9.555-10.836-9.555-15.216c0-9.322 13.897-21.212 37.076-29.293c2.813-.98 5.757-1.905 8.812-2.773c3.204 10.42 7.406 21.315 12.477 32.332c-5.137 11.18-9.399 22.249-12.634 32.792a134.718 134.718 0 0 1-6.318-1.979Zm12.378-84.26c-4.811-24.587-1.616-43.134 6.425-47.789c8.564-4.958 27.502 2.111 47.463 19.835a144.318 144.318 0 0 1 3.841 3.545c-7.438 7.987-14.787 17.08-21.808 26.988c-12.04 1.116-23.565 2.908-34.161 5.309a160.342 160.342 0 0 1-1.76-7.887Zm110.427 27.268a347.8 347.8 0 0 0-7.785-12.803c8.168 1.033 15.994 2.404 23.343 4.08c-2.206 7.072-4.956 14.465-8.193 22.045a381.151 381.151 0 0 0-7.365-13.322Zm-45.032-43.861c5.044 5.465 10.096 11.566 15.065 18.186a322.04 322.04 0 0 0-30.257-.006c4.974-6.559 10.069-12.652 15.192-18.18ZM82.802 87.83a323.167 323.167 0 0 0-7.227 13.238c-3.184-7.553-5.909-14.98-8.134-22.152c7.304-1.634 15.093-2.97 23.209-3.984a321.524 321.524 0 0 0-7.848 12.897Zm8.081 65.352c-8.385-.936-16.291-2.203-23.593-3.793c2.26-7.3 5.045-14.885 8.298-22.6a321.187 321.187 0 0 0 7.257 13.246c2.594 4.48 5.28 8.868 8.038 13.147Zm37.542 31.03c-5.184-5.592-10.354-11.779-15.403-18.433c4.902.192 9.899.29 14.978.29c5.218 0 10.376-.117 15.453-.343c-4.985 6.774-10.018 12.97-15.028 18.486Zm52.198-57.817c3.422 7.8 6.306 15.345 8.596 22.52c-7.422 1.694-15.436 3.058-23.88 4.071a382.417 382.417 0 0 0 7.859-13.026a347.403 347.403 0 0 0 7.425-13.565Zm-16.898 8.101a358.557 358.557 0 0 1-12.281 19.815a329.4 329.4 0 0 1-23.444.823c-7.967 0-15.716-.248-23.178-.732a310.202 310.202 0 0 1-12.513-19.846h.001a307.41 307.41 0 0 1-10.923-20.627a310.278 310.278 0 0 1 10.89-20.637l-.001.001a307.318 307.318 0 0 1 12.413-19.761c7.613-.576 15.42-.876 23.31-.876H128c7.926 0 15.743.303 23.354.883a329.357 329.357 0 0 1 12.335 19.695a358.489 358.489 0 0 1 11.036 20.54a329.472 329.472 0 0 1-11 20.722Zm22.56-122.124c8.572 4.944 11.906 24.881 6.52 51.026c-.344 1.668-.73 3.367-1.15 5.09c-10.622-2.452-22.155-4.275-34.23-5.408c-7.034-10.017-14.323-19.124-21.64-27.008a160.789 160.789 0 0 1 5.888-5.4c18.9-16.447 36.564-22.941 44.612-18.3ZM128 90.808c12.625 0 22.86 10.235 22.86 22.86s-10.235 22.86-22.86 22.86s-22.86-10.235-22.86-22.86s10.235-22.86 22.86-22.86Z"></path></svg>
+</file>
+
+<file path="src/components/DataBackup.jsx">
+import { useState, useRef } from 'react'
+import PropTypes from 'prop-types'
+
+function buildExportPayload(entries, events, categories) {
+  return {
+    app: 'My Diary',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    entries,
+    events,
+    categories,
+  }
+}
+
+export default function DataBackup({ entries, events, categories, onImport }) {
+  const [exportedText, setExportedText] = useState(null)
+  const [pendingImport, setPendingImport] = useState(null)
+  const [importError, setImportError] = useState(null)
+  const fileInputRef = useRef(null)
+
+  const entryCount = Object.keys(entries).length
+  const eventCount = events.length
+  const categoryCount = categories.length
+
+  function handleExport() {
+    const payload = buildExportPayload(entries, events, categories)
+    const json = JSON.stringify(payload, null, 2)
+    setExportedText(json)
+
+    try {
+      const blob = new Blob([json], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      const dateStamp = new Date().toISOString().slice(0, 10)
+      link.download = `my-diary-backup-${dateStamp}.json`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+    } catch {
+      // Download may not trigger on every device — the text box below
+      // still lets you copy the backup manually.
+    }
+  }
+
+  function handleFileSelected(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImportError(null)
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result)
+        const looksValid =
+          typeof data === 'object' && data !== null &&
+          typeof data.entries === 'object' && data.entries !== null &&
+          Array.isArray(data.events) &&
+          Array.isArray(data.categories)
+
+        if (!looksValid) {
+          setImportError("This file doesn't look like a diary backup.")
+          return
+        }
+
+        setPendingImport({
+          data,
+          summary: {
+            entries: Object.keys(data.entries).length,
+            events: data.events.length,
+            categories: data.categories.length,
+          },
+        })
+      } catch {
+        setImportError("Couldn't read that file — make sure it's a valid backup .json file.")
+      }
+    }
+    reader.readAsText(file)
+    e.target.value = ''
+  }
+
+  function confirmImport() {
+    onImport(pendingImport.data)
+    setPendingImport(null)
+  }
+
+  return (
+    <section aria-label="Backup and restore" className="flex flex-col gap-4">
+      <div>
+        <h2 className="text-base font-semibold text-gray-800">Backup &amp; Restore</h2>
+        <p className="text-xs text-gray-500 mt-1">
+          Your notes only live on this device. Export a backup before reinstalling the app, or anytime after making important entries.
+        </p>
+      </div>
+
+      {/* Export */}
+      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex flex-col gap-3">
+        <div>
+          <h3 className="text-sm font-medium text-gray-700">Export</h3>
+          <p className="text-xs text-gray-500 mt-0.5">
+            {entryCount} {entryCount === 1 ? 'entry' : 'entries'} · {eventCount} {eventCount === 1 ? 'event' : 'events'} · {categoryCount} {categoryCount === 1 ? 'category' : 'categories'}
+          </p>
+        </div>
+        <button
+          onClick={handleExport}
+          className="w-full bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-medium rounded-xl py-2.5 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        >
+          Download backup file
+        </button>
+        {exportedText && (
+          <div>
+            <label htmlFor="export-text" className="block text-xs text-gray-500 mb-1">
+              If the download didn&rsquo;t save anywhere you can find, tap the box below to select all, then copy it manually:
+            </label>
+            <textarea
+              id="export-text"
+              readOnly
+              value={exportedText}
+              rows={4}
+              onFocus={e => e.target.select()}
+              className="w-full rounded-xl border border-gray-300 p-2.5 text-xs font-mono resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Import */}
+      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex flex-col gap-3">
+        <div>
+          <h3 className="text-sm font-medium text-gray-700">Restore</h3>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Choose a previously exported backup file. Entries on the same date will be replaced by the backup&rsquo;s version.
+          </p>
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="application/json,.json"
+          onChange={handleFileSelected}
+          aria-label="Choose backup file to restore"
+          className="text-xs text-gray-600 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-gray-100 file:text-gray-700 file:text-xs file:font-medium hover:file:bg-gray-200"
+        />
+        {importError && (
+          <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{importError}</p>
+        )}
+      </div>
+
+      {/* Confirm import dialog */}
+      {pendingImport && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Confirm restore"
+          className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-4"
+        >
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl p-4 flex flex-col gap-4">
+            <h3 className="text-base font-semibold text-gray-800">Restore this backup?</h3>
+            <p className="text-sm text-gray-600">
+              This file has {pendingImport.summary.entries} {pendingImport.summary.entries === 1 ? 'entry' : 'entries'}, {pendingImport.summary.events} {pendingImport.summary.events === 1 ? 'event' : 'events'}, and {pendingImport.summary.categories} {pendingImport.summary.categories === 1 ? 'category' : 'categories'}. It will be merged into what you have now — any entry on the same date will be replaced by the backup&rsquo;s version.
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPendingImport(null)}
+                className="flex-1 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-medium rounded-xl py-2.5 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmImport}
+                className="flex-1 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-medium rounded-xl py-2.5 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              >
+                Restore
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </section>
+  )
+}
+
+DataBackup.propTypes = {
+  entries: PropTypes.objectOf(
+    PropTypes.shape({
+      note:     PropTypes.string,
+      color:    PropTypes.string,
+      category: PropTypes.string,
+    })
+  ).isRequired,
+  events: PropTypes.arrayOf(
+    PropTypes.shape({
+      id:    PropTypes.number.isRequired,
+      date:  PropTypes.string.isRequired,
+      title: PropTypes.string.isRequired,
+      color: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  categories: PropTypes.arrayOf(
+    PropTypes.shape({
+      id:    PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      color: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  onImport: PropTypes.func.isRequired,
+}
+</file>
+
+<file path="src/components/DayCell.jsx">
+import PropTypes from 'prop-types'
+
+export default function DayCell({ day, dateKey, isToday, entryColor, events, onClick }) {
+  const hasNote   = Boolean(entryColor)
+  const hasEvents = events.length > 0
+
+  const ariaLabel = [
+    `${dateKey}`,
+    isToday ? "today" : "",
+    hasNote ? "has diary entry" : "",
+    hasEvents ? `${events.length} event(s)` : "",
+  ].filter(Boolean).join(", ")
+
+  return (
+    <button
+      onClick={onClick}
+      aria-label={ariaLabel}
+      className={[
+        "relative flex flex-col items-center justify-start",
+        "w-full aspect-square rounded-xl pt-1 pb-1",
+        "text-sm font-medium transition",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+        "active:scale-95",
+        isToday
+          ? "ring-2 ring-blue-500 text-blue-700 font-bold"
+          : "text-gray-800 hover:bg-gray-100",
+      ].join(" ")}
+      style={entryColor ? { backgroundColor: entryColor } : {}}
+    >
+      <span>{day}</span>
+
+      {/* Event dots */}
+      {hasEvents && (
+        <div
+          className="flex gap-0.5 mt-0.5 flex-wrap justify-center"
+          aria-hidden="true"
+        >
+          {events.slice(0, 3).map(event => (
+            <span
+              key={event.id}
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ backgroundColor: event.color }}
+            />
+          ))}
+        </div>
+      )}
+    </button>
+  )
+}
+
+DayCell.propTypes = {
+  day:        PropTypes.number.isRequired,
+  dateKey:    PropTypes.string.isRequired,
+  isToday:    PropTypes.bool.isRequired,
+  entryColor: PropTypes.string,
+  events:     PropTypes.arrayOf(
+    PropTypes.shape({
+      id:    PropTypes.number.isRequired,
+      color: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  onClick: PropTypes.func.isRequired,
+}
+
+DayCell.defaultProps = {
+  entryColor: null,
+}
+</file>
+
+<file path="src/utils/colorUsage.js">
+// Returns a Set of every color currently assigned to a category, a manually
+// highlighted entry, or an event — used to keep colors unique across the app.
+export function getUsedColors({ categories, entries, events, excludeDateKey }) {
+  const used = new Set()
+
+  categories.forEach(cat => used.add(cat.color))
+
+  Object.entries(entries).forEach(([dateKey, entry]) => {
+    if (dateKey === excludeDateKey) return
+    // Only count manually picked highlight colors — category-derived
+    // colors are already covered by the categories loop above.
+    if (!entry.category && entry.color) used.add(entry.color)
+  })
+
+  events.forEach(event => used.add(event.color))
+
+  return used
+}
+</file>
+
+<file path="src/utils/notePreview.js">
+const NOTE_LINE_LIMIT = 10
+
+// Splits a note on explicit line breaks and caps it at NOTE_LINE_LIMIT lines.
+// Truncation is based on the lines the user actually typed (via Enter), not
+// on however the text happens to visually wrap on screen.
+export function truncateNote(note) {
+  if (!note) return { text: '', truncated: false }
+  const lines = note.split('\n')
+  const truncated = lines.length > NOTE_LINE_LIMIT
+  const text = truncated ? lines.slice(0, NOTE_LINE_LIMIT).join('\n') : note
+  return { text, truncated }
+}
+</file>
+
+<file path="src/App.css">
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+</file>
+
+<file path="src/index.css">
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+</file>
+
+<file path="src/main.jsx">
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.jsx'
+
+
+// 1. Import the devtools initializer
+import { initDevTools } from './devtools.js'
+
+// 2. Call it before rendering the app
+initDevTools()
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
+</file>
+
+<file path="capacitor.config.json">
+{
+  "appId": "com.mydiary.app",
+  "appName": "My Diary",
+  "webDir": "dist"
+}
+</file>
+
+<file path="diary_src.txt">
+====================
+FILE: src/App.css
+====================
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+====================
+FILE: src/App.jsx
+====================
+
+import { useState } from 'react'
+import { useDiary } from './hooks/useDiary'
+import Calendar   from './components/Calendar'
+import DiaryEntry from './components/DiaryEntry'
+import History    from './components/History'
+import Search     from './components/Search'
+import Categories from './components/Categories'
+
+const TABS = [
+  { key: 'calendar',   icon: '📅', label: 'Calendar'   },
+  { key: 'history',    icon: '📋', label: 'History'    },
+  { key: 'search',     icon: '🔍', label: 'Search'     },
+  { key: 'settings',   icon: '⚙️',  label: 'Settings'   },
+]
+
+export default function App() {
+  const {
+    entries, events, categories,
+    saveEntry, deleteEntry,
+    addEvent, deleteEvent,
+    addCategory, deleteCategory,
+  } = useDiary()
+
+  const [selectedDate, setSelectedDate] = useState(null)
+  const [view,         setView]         = useState('calendar')
+
+  const selectedEntry  = selectedDate ? entries[selectedDate] ?? null : null
+  const selectedEvents = selectedDate ? events.filter(e => e.date === selectedDate) : []
+
+  function handleSelectDate(dateKey) {
+    setSelectedDate(dateKey)
+    setView('calendar')
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
+        <h1 className="text-xl font-bold text-gray-800 text-center">
+          📓 My Diary
+        </h1>
+      </header>
+
+      {/* Main */}
+      <main className="flex-1 flex flex-col p-4 max-w-lg mx-auto w-full pb-20">
+        {view === 'calendar' && (
+          <Calendar
+            entries={entries}
+            events={events}
+            onSelectDate={setSelectedDate}
+          />
+        )}
+        {view === 'history' && (
+          <History
+            entries={entries}
+            categories={categories}
+            onSelectDate={handleSelectDate}
+          />
+        )}
+        {view === 'search' && (
+          <Search
+            entries={entries}
+            events={events}
+            categories={categories}
+            onSelectDate={handleSelectDate}
+          />
+        )}
+        {view === 'settings' && (
+          <Categories
+            categories={categories}
+            onAdd={addCategory}
+            onDelete={deleteCategory}
+          />
+        )}
+      </main>
+
+      {/* Bottom navigation */}
+      <nav
+        aria-label="Main navigation"
+        className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex"
+      >
+        {TABS.map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => setView(tab.key)}
+            aria-current={view === tab.key ? 'page' : undefined}
+            className={[
+              'flex-1 flex flex-col items-center py-3 text-xs font-medium transition',
+              view === tab.key ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700',
+            ].join(' ')}
+          >
+            <span className="text-xl mb-0.5" aria-hidden="true">{tab.icon}</span>
+            {tab.label}
+          </button>
+        ))}
+      </nav>
+
+      {/* Diary modal */}
+      {selectedDate && (
+        <DiaryEntry
+          dateKey={selectedDate}
+          entry={selectedEntry}
+          events={selectedEvents}
+          categories={categories}
+          onSave={saveEntry}
+          onDelete={deleteEntry}
+          onAddEvent={addEvent}
+          onDeleteEvent={deleteEvent}
+          onClose={() => setSelectedDate(null)}
+        />
+      )}
+
+    </div>
+  )
+}
+====================
+FILE: src/index.css
+====================
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+====================
+FILE: src/main.jsx
+====================
+
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.jsx'
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
+
+====================
+FILE: src/hooks/useDiary.js
+====================
+
+import { useState, useEffect } from "react"
+
+const ENTRIES_KEY    = "diary_entries"
+const EVENTS_KEY     = "diary_events"
+const CATEGORIES_KEY = "diary_categories"
+
+const DEFAULT_CATEGORIES = [
+  { id: 'legs', label: 'Legs', color: '#fca5a5' },
+  { id: 'pull', label: 'Pull', color: '#93c5fd' },
+  { id: 'push', label: 'Push', color: '#fde68a' },
+]
+
+function load(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key)
+    return raw ? JSON.parse(raw) : fallback
+  } catch {
+    return fallback
+  }
+}
+
+export function useDiary() {
+  const [entries,    setEntries]    = useState(() => load(ENTRIES_KEY,    {}))
+  const [events,     setEvents]     = useState(() => load(EVENTS_KEY,     []))
+  const [categories, setCategories] = useState(() => load(CATEGORIES_KEY, DEFAULT_CATEGORIES))
+
+  useEffect(() => {
+    localStorage.setItem(ENTRIES_KEY, JSON.stringify(entries))
+  }, [entries])
+
+  useEffect(() => {
+    localStorage.setItem(EVENTS_KEY, JSON.stringify(events))
+  }, [events])
+
+  useEffect(() => {
+    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories))
+  }, [categories])
+
+  function saveEntry(dateKey, note, color, category) {
+    setEntries(prev => ({ ...prev, [dateKey]: { note, color, category } }))
+  }
+
+  function deleteEntry(dateKey) {
+    setEntries(prev => {
+      const next = { ...prev }
+      delete next[dateKey]
+      return next
+    })
+  }
+
+  function addEvent(dateKey, title, color) {
+    setEvents(prev => [
+      ...prev,
+      { id: Date.now(), date: dateKey, title, color }
+    ])
+  }
+
+  function deleteEvent(id) {
+    setEvents(prev => prev.filter(e => e.id !== id))
+  }
+
+  function addCategory(label, color) {
+    setCategories(prev => [
+      ...prev,
+      { id: Date.now().toString(), label, color }
+    ])
+  }
+
+  function deleteCategory(id) {
+    setCategories(prev => prev.filter(c => c.id !== id))
+  }
+
+  return {
+    entries, events, categories,
+    saveEntry, deleteEntry,
+    addEvent, deleteEvent,
+    addCategory, deleteCategory,
+  }
+}
+====================
+FILE: src/components/Calendar.jsx
+====================
+
+import { useState } from "react"
+import DayCell from "./DayCell"
+import { useSwipeable } from "react-swipeable"
+import PropTypes from 'prop-types'
+
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+function getDaysInMonth(year, month) {
+  return new Date(year, month + 1, 0).getDate()
+}
+
+function getFirstDayOfMonth(year, month) {
+  const day = new Date(year, month, 1).getDay()
+  return (day + 6) % 7
+}
+
+export default function Calendar({ entries, events, onSelectDate }) {
+  const today = new Date()
+  const [year,  setYear]  = useState(today.getFullYear())
+  const [month, setMonth] = useState(today.getMonth())
+  
+  const isCurrentMonth = year === today.getFullYear() && month === today.getMonth()
+  const isFuture = year > today.getFullYear() ||
+    (year === today.getFullYear() && month > today.getMonth())
+  const daysInMonth  = getDaysInMonth(year, month)
+  const firstDaySlot = getFirstDayOfMonth(year, month)
+
+  const monthLabel = new Date(year, month).toLocaleString("default", {
+    month: "long", year: "numeric"
+  })
+
+  function prevMonth() {
+    if (month === 0) { setMonth(11); setYear(y => y - 1) }
+    else setMonth(m => m - 1)
+  }
+
+  function nextMonth() {
+    if (month === 11) { setMonth(0); setYear(y => y + 1) }
+    else setMonth(m => m + 1)
+  }
+
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft:  () => nextMonth(),
+    onSwipedRight: () => prevMonth(),
+    preventScrollOnSwipe: false,
+    trackMouse: false,
+  })
+
+  const cells = []
+
+  // empty slots before day 1
+  for (let i = 0; i < firstDaySlot; i++) {
+    cells.push(<div key={`empty-${i}`} />)
+  }
+
+  // actual days
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+    const isToday =
+      day === today.getDate() &&
+      month === today.getMonth() &&
+      year === today.getFullYear()
+
+    const dayEvents  = events.filter(e => e.date === dateKey)
+    const entryColor = entries[dateKey]?.color || null
+
+    cells.push(
+      <DayCell
+        key={dateKey}
+        day={day}
+        dateKey={dateKey}
+        isToday={isToday}
+        entryColor={entryColor}
+        events={dayEvents}
+        onClick={() => onSelectDate(dateKey)}
+      />
+    )
+  }
+
+  return (
+    <section
+      {...swipeHandlers}
+      aria-label="Calendar"
+      className="flex-1 flex flex-col -mx-4 px-4 sm:mx-0 sm:px-0"
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <button
+          onClick={prevMonth}
+          aria-label="Previous month"
+          className="p-2 rounded-full hover:bg-gray-200 active:bg-gray-300 transition"
+        >
+          ◀
+        </button>
+        <h2 className="text-lg font-semibold">{monthLabel}</h2>
+        <button
+          onClick={nextMonth}
+          aria-label="Next month"
+          className="p-2 rounded-full hover:bg-gray-200 active:bg-gray-300 transition"
+        >
+          ▶
+        </button>
+      </div>
+{/* Today button */}
+      {!isCurrentMonth && (
+        <div className="flex justify-center mb-2 -mt-2">
+          <button
+            onClick={() => { setYear(today.getFullYear()); setMonth(today.getMonth()) }}
+            aria-label="Go to current month"
+            className="text-base font-medium text-blue-600 hover:text-blue-700 px-4 py-2 rounded-full hover:bg-blue-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            {isFuture ? '↩ Today' : 'Today ↪'}
+          </button>
+        </div>
+      )}
+
+      {/* Day labels */}
+      <div className="grid grid-cols-7 mb-1">
+        {DAYS.map(d => (
+          <div
+            key={d}
+            className="text-center text-xs font-medium text-gray-500 py-1"
+            aria-hidden="true"
+          >
+            {d}
+          </div>
+        ))}
+      </div>
+
+      {/* Day grid */}
+      <div className="grid grid-cols-7 gap-1">
+        {cells}
+      </div>
+    </section>
+  )
+}
+
+Calendar.propTypes = {
+  entries: PropTypes.objectOf(
+    PropTypes.shape({
+      note:     PropTypes.string,
+      color:    PropTypes.string,
+      category: PropTypes.string,
+    })
+  ).isRequired,
+  events: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      date: PropTypes.string.isRequired,
+      title: PropTypes.string.isRequired,
+      color: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  onSelectDate: PropTypes.func.isRequired,
+}
+====================
+FILE: src/components/DayCell.jsx
+====================
+
+import PropTypes from 'prop-types'
+
+export default function DayCell({ day, dateKey, isToday, entryColor, events, onClick }) {
+  const hasNote   = Boolean(entryColor)
+  const hasEvents = events.length > 0
+
+  const ariaLabel = [
+    `${dateKey}`,
+    isToday ? "today" : "",
+    hasNote ? "has diary entry" : "",
+    hasEvents ? `${events.length} event(s)` : "",
+  ].filter(Boolean).join(", ")
+
+  return (
+    <button
+      onClick={onClick}
+      aria-label={ariaLabel}
+      className={[
+        "relative flex flex-col items-center justify-start",
+        "w-full aspect-square rounded-xl pt-1 pb-1",
+        "text-sm font-medium transition",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+        "active:scale-95",
+        isToday
+          ? "ring-2 ring-blue-500 text-blue-700 font-bold"
+          : "text-gray-800 hover:bg-gray-100",
+      ].join(" ")}
+      style={entryColor ? { backgroundColor: entryColor } : {}}
+    >
+      <span>{day}</span>
+
+      {/* Event dots */}
+      {hasEvents && (
+        <div
+          className="flex gap-0.5 mt-0.5 flex-wrap justify-center"
+          aria-hidden="true"
+        >
+          {events.slice(0, 3).map(event => (
+            <span
+              key={event.id}
+              className="w-1.5 h-1.5 rounded-full"
+              style={{ backgroundColor: event.color }}
+            />
+          ))}
+        </div>
+      )}
+    </button>
+  )
+}
+
+DayCell.propTypes = {
+  day:        PropTypes.number.isRequired,
+  dateKey:    PropTypes.string.isRequired,
+  isToday:    PropTypes.bool.isRequired,
+  entryColor: PropTypes.string,
+  events:     PropTypes.arrayOf(
+    PropTypes.shape({
+      id:    PropTypes.number.isRequired,
+      color: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  onClick: PropTypes.func.isRequired,
+}
+
+DayCell.defaultProps = {
+  entryColor: null,
+}
+====================
+FILE: src/components/DiaryEntry.jsx
+====================
+
+import { useState } from 'react'
+import PropTypes from 'prop-types'
+
+const ENTRY_COLORS = [
+  { label: 'None',   value: null,      bg: 'bg-white border-2 border-gray-300' },
+  { label: 'Yellow', value: '#fde68a', bg: 'bg-yellow-200' },
+  { label: 'Green',  value: '#bbf7d0', bg: 'bg-green-200' },
+  { label: 'Blue',   value: '#bfdbfe', bg: 'bg-blue-200' },
+  { label: 'Pink',   value: '#fbcfe8', bg: 'bg-pink-200' },
+  { label: 'Purple', value: '#e9d5ff', bg: 'bg-purple-200' },
+  { label: 'Orange', value: '#fed7aa', bg: 'bg-orange-200' },
+]
+
+const EVENT_COLORS = [
+  { label: 'Red',    value: '#f87171' },
+  { label: 'Blue',   value: '#60a5fa' },
+  { label: 'Green',  value: '#4ade80' },
+  { label: 'Purple', value: '#c084fc' },
+  { label: 'Orange', value: '#fb923c' },
+]
+
+export default function DiaryEntry({
+  dateKey, entry, events, categories,
+  onSave, onDelete, onAddEvent, onDeleteEvent, onClose
+}) {
+  const [note,       setNote]       = useState(entry?.note     || '')
+  const [color,      setColor]      = useState(entry?.color    || null)
+  const [category,   setCategory]   = useState(entry?.category || null)
+  const [eventTitle, setEventTitle] = useState('')
+  const [eventColor, setEventColor] = useState(EVENT_COLORS[0].value)
+
+  const formattedDate = new Date(dateKey + 'T00:00:00').toLocaleDateString('default', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  })
+
+  function handleCategoryChange(val) {
+    if (!val) {
+      setCategory(null)
+      setColor(null)
+    } else {
+      const cat = categories.find(c => c.id === val)
+      setCategory(val)
+      setColor(cat.color)
+    }
+  }
+
+  function handleSave() {
+    onSave(dateKey, note, color, category)
+    onClose()
+  }
+
+  function handleDelete() {
+    onDelete(dateKey)
+    onClose()
+  }
+
+  function handleAddEvent() {
+    if (!eventTitle.trim()) return
+    onAddEvent(dateKey, eventTitle.trim(), eventColor)
+    setEventTitle('')
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Diary entry for ${formattedDate}`}
+      className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-4"
+    >
+      <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-xl">
+
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-100">
+          <h2 className="text-base font-semibold text-gray-800">{formattedDate}</h2>
+          <button
+            onClick={onClose}
+            aria-label="Close diary entry"
+            className="p-2 rounded-full hover:bg-gray-100 active:bg-gray-200 transition text-gray-500"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="p-4 flex flex-col gap-5">
+
+          {/* Workout category dropdown */}
+          <section aria-labelledby="category-label">
+            <label
+              id="category-label"
+              htmlFor="workout-category"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Workout type
+            </label>
+            <div className="relative">
+              <select
+                id="workout-category"
+                value={category || ''}
+                onChange={e => handleCategoryChange(e.target.value || null)}
+                className="w-full rounded-xl border border-gray-300 p-2.5 text-sm bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 pr-8"
+              >
+                <option value="">— None —</option>
+                {categories.map(c => (
+                  <option key={c.id} value={c.id}>{c.label}</option>
+                ))}
+              </select>
+              <span
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                aria-hidden="true"
+              >
+                ▾
+              </span>
+            </div>
+            {category && (
+              <p className="mt-1.5 text-xs text-gray-500 flex items-center gap-1.5">
+                <span
+                  className="inline-block w-3 h-3 rounded-full"
+                  style={{ backgroundColor: color }}
+                  aria-hidden="true"
+                />
+                Day will be highlighted in{' '}
+                {categories.find(c => c.id === category)?.label} color
+              </p>
+            )}
+          </section>
+
+          {/* Manual highlight — hidden when category is selected */}
+          {!category && (
+            <section aria-labelledby="color-label">
+              <p id="color-label" className="text-sm font-medium text-gray-700 mb-2">
+                Highlight color
+              </p>
+              <div className="flex gap-2 flex-wrap" role="group" aria-labelledby="color-label">
+                {ENTRY_COLORS.map(c => (
+                  <button
+                    key={c.label}
+                    onClick={() => setColor(c.value)}
+                    aria-label={`${c.label} highlight${color === c.value ? ', selected' : ''}`}
+                    aria-pressed={color === c.value}
+                    className={[
+                      'w-8 h-8 rounded-full transition',
+                      c.bg,
+                      color === c.value ? 'ring-2 ring-offset-2 ring-blue-500 scale-110' : '',
+                    ].join(' ')}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Notes */}
+          <section aria-labelledby="notes-label">
+            <label
+              id="notes-label"
+              htmlFor="diary-note"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Notes
+            </label>
+            <textarea
+              id="diary-note"
+              value={note}
+              onChange={e => setNote(e.target.value)}
+              placeholder="Write about your day..."
+              rows={4}
+              className="w-full rounded-xl border border-gray-300 p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </section>
+
+          {/* Save / Delete */}
+          <div className="flex gap-2">
+            <button
+              onClick={handleSave}
+              className="flex-1 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-medium rounded-xl py-2.5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            >
+              Save
+            </button>
+            {entry && (
+              <button
+                onClick={handleDelete}
+                aria-label="Delete this diary entry"
+                className="px-4 bg-red-100 hover:bg-red-200 active:bg-red-300 text-red-600 font-medium rounded-xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+              >
+                Delete
+              </button>
+            )}
+          </div>
+
+          {/* Events */}
+          <section aria-labelledby="events-label">
+            <h3 id="events-label" className="text-sm font-medium text-gray-700 mb-2">
+              Events
+            </h3>
+            {events.length > 0 && (
+              <ul aria-label="Events for this day" className="flex flex-col gap-2 mb-3">
+                {events.map(event => (
+                  <li
+                    key={event.id}
+                    className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="w-3 h-3 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: event.color }}
+                        aria-hidden="true"
+                      />
+                      <span className="text-sm text-gray-800">{event.title}</span>
+                    </div>
+                    <button
+                      onClick={() => onDeleteEvent(event.id)}
+                      aria-label={`Delete event: ${event.title}`}
+                      className="text-gray-400 hover:text-red-500 transition text-xs px-2 py-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                    >
+                      ✕
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="flex flex-col gap-2">
+              <input
+                type="text"
+                value={eventTitle}
+                onChange={e => setEventTitle(e.target.value)}
+                placeholder="New event title..."
+                aria-label="New event title"
+                className="w-full rounded-xl border border-gray-300 p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <div className="flex gap-2 items-center" role="group" aria-label="Event color">
+                {EVENT_COLORS.map(c => (
+                  <button
+                    key={c.label}
+                    onClick={() => setEventColor(c.value)}
+                    aria-label={`${c.label} event color${eventColor === c.value ? ', selected' : ''}`}
+                    aria-pressed={eventColor === c.value}
+                    className={[
+                      'w-7 h-7 rounded-full transition',
+                      eventColor === c.value ? 'ring-2 ring-offset-2 ring-blue-500 scale-110' : '',
+                    ].join(' ')}
+                    style={{ backgroundColor: c.value }}
+                  />
+                ))}
+              </div>
+              <button
+                onClick={handleAddEvent}
+                disabled={!eventTitle.trim()}
+                className="w-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 disabled:opacity-40 disabled:cursor-not-allowed text-gray-700 font-medium rounded-xl py-2 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              >
+                + Add Event
+              </button>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+  )
+}
+
+DiaryEntry.propTypes = {
+  dateKey: PropTypes.string.isRequired,
+  entry: PropTypes.shape({
+    note:     PropTypes.string,
+    color:    PropTypes.string,
+    category: PropTypes.string,
+  }),
+  events: PropTypes.arrayOf(
+    PropTypes.shape({
+      id:    PropTypes.number.isRequired,
+      title: PropTypes.string.isRequired,
+      color: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  categories: PropTypes.arrayOf(
+    PropTypes.shape({
+      id:    PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      color: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  onSave:        PropTypes.func.isRequired,
+  onDelete:      PropTypes.func.isRequired,
+  onAddEvent:    PropTypes.func.isRequired,
+  onDeleteEvent: PropTypes.func.isRequired,
+  onClose:       PropTypes.func.isRequired,
+}
+
+DiaryEntry.defaultProps = {
+  entry: null,
+}
+====================
+FILE: src/components/History.jsx
+====================
+
+import { useState } from 'react'
+import PropTypes from 'prop-types'
+
+function formatDate(dateKey) {
+  return new Date(dateKey + 'T00:00:00').toLocaleDateString('default', {
+    weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
+  })
+}
+
+export default function History({ entries, categories, onSelectDate }) {
+  const [categoryId, setCategoryId] = useState(categories[0]?.id || '')
+
+  const cat = categories.find(c => c.id === categoryId)
+
+  const filtered = Object.entries(entries)
+    .filter(([, entry]) => entry.category === categoryId)
+    .sort(([a], [b]) => b.localeCompare(a))
+
+  return (
+    <section aria-label="Workout history">
+
+      {/* Category tabs */}
+      <div role="tablist" aria-label="Workout category" className="flex gap-2 mb-4 flex-wrap">
+        {categories.map(c => (
+          <button
+            key={c.id}
+            role="tab"
+            aria-selected={categoryId === c.id}
+            onClick={() => setCategoryId(c.id)}
+            className={[
+              'flex-1 py-2 rounded-xl text-sm font-medium transition min-w-[4rem]',
+              categoryId === c.id
+                ? 'ring-2 ring-blue-500 shadow-sm'
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-600',
+            ].join(' ')}
+            style={categoryId === c.id ? { backgroundColor: c.color } : {}}
+          >
+            {c.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Count */}
+      <p className="text-xs text-gray-500 mb-3" aria-live="polite">
+        {filtered.length} {filtered.length === 1 ? 'entry' : 'entries'} found
+      </p>
+
+      {/* Empty state */}
+      {filtered.length === 0 ? (
+        <div className="text-center py-12 text-gray-400">
+          <p className="text-4xl mb-2" aria-hidden="true">📭</p>
+          <p className="text-sm">No {cat?.label} entries yet</p>
+        </div>
+      ) : (
+        <ul className="flex flex-col gap-3" aria-label={`${cat?.label} entries`}>
+          {filtered.map(([dateKey, entry]) => (
+            <li key={dateKey}>
+              <button
+                onClick={() => onSelectDate(dateKey)}
+                aria-label={`Open entry for ${formatDate(dateKey)}`}
+                className="w-full text-left bg-white rounded-xl p-3 shadow-sm border border-gray-100 hover:border-blue-300 active:bg-gray-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <span
+                    className="w-3 h-3 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: cat?.color }}
+                    aria-hidden="true"
+                  />
+                  <time dateTime={dateKey} className="text-xs font-medium text-gray-500">
+                    {formatDate(dateKey)}
+                  </time>
+                </div>
+                {entry.note
+                  ? <p className="text-sm text-gray-700 line-clamp-2 ml-5">{entry.note}</p>
+                  : <p className="text-sm text-gray-400 italic ml-5">No notes</p>
+                }
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+    </section>
+  )
+}
+
+History.propTypes = {
+  entries: PropTypes.objectOf(
+    PropTypes.shape({
+      note:     PropTypes.string,
+      color:    PropTypes.string,
+      category: PropTypes.string,
+    })
+  ).isRequired,
+  categories: PropTypes.arrayOf(
+    PropTypes.shape({
+      id:    PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      color: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  onSelectDate: PropTypes.func.isRequired,
+}
+====================
+FILE: src/components/Search.jsx
+====================
+
+import { useState, useMemo, useRef, useEffect } from 'react'
+import PropTypes from 'prop-types'
+
+
+
+function formatDate(dateKey) {
+  return new Date(dateKey + 'T00:00:00').toLocaleDateString('default', {
+    weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
+  })
+}
+
+function highlight(text, query) {
+  if (!query) return text
+  const parts = text.split(new RegExp(`(${query})`, 'gi'))
+  return parts.map((part, i) =>
+    part.toLowerCase() === query.toLowerCase()
+      ? <mark key={i} className="bg-yellow-200 rounded px-0.5">{part}</mark>
+      : part
+  )
+}
+
+export default function Search({ entries, events, categories, onSelectDate }) {
+  const [query, setQuery] = useState('')
+
+  const trimmed = query.trim().toLowerCase()
+
+  const results = useMemo(() => {
+    if (!trimmed) return []
+
+    const matched = {}
+
+    // search through notes
+    Object.entries(entries).forEach(([dateKey, entry]) => {
+      if (entry.note?.toLowerCase().includes(trimmed)) {
+        matched[dateKey] = { ...entry, matchedEvents: [] }
+      }
+    })
+
+    // search through event titles
+    events.forEach(event => {
+      if (event.title.toLowerCase().includes(trimmed)) {
+        if (!matched[event.date]) {
+          matched[event.date] = {
+            ...entries[event.date],
+            matchedEvents: [event]
+          }
+        } else {
+          matched[event.date].matchedEvents.push(event)
+        }
+      }
+    })
+
+    return Object.entries(matched)
+      .sort(([a], [b]) => b.localeCompare(a)) // newest first
+  }, [trimmed, entries, events])
+
+const inputRef = useRef(null)
+useEffect(() => { inputRef.current?.focus() }, [])
+
+  return (
+    <section aria-label="Search diary">
+
+      {/* Search input */}
+      <div className="relative mb-4">
+        <span
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          aria-hidden="true"
+        >
+          🔍
+        </span>
+        <input
+          type="search"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          placeholder="Search notes and events..."
+          aria-label="Search notes and events"
+          ref={inputRef}
+className="w-full rounded-xl border border-gray-300 pl-9 pr-9 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        {query && (
+          <button
+            onClick={() => setQuery('')}
+            aria-label="Clear search"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+
+      {/* Results count */}
+      {trimmed && (
+        <p className="text-xs text-gray-500 mb-3" aria-live="polite" aria-atomic="true">
+          {results.length} {results.length === 1 ? 'result' : 'results'} for &ldquo;{query.trim()}&rdquo;
+        </p>
+      )}
+
+      {/* Empty states */}
+      {!trimmed && (
+        <div className="text-center py-12 text-gray-400">
+          <p className="text-4xl mb-2" aria-hidden="true">🔍</p>
+          <p className="text-sm">Start typing to search your diary</p>
+        </div>
+      )}
+
+      {trimmed && results.length === 0 && (
+        <div className="text-center py-12 text-gray-400">
+          <p className="text-4xl mb-2" aria-hidden="true">📭</p>
+          <p className="text-sm">No results found</p>
+        </div>
+      )}
+
+      {/* Results */}
+      {results.length > 0 && (
+        <ul className="flex flex-col gap-3" aria-label="Search results">
+          {results.map(([dateKey, entry]) => {
+            const cat = categories.find(c => c.id === entry?.category)
+            return (
+              <li key={dateKey}>
+                <button
+                  onClick={() => onSelectDate(dateKey)}
+                  aria-label={`Open entry for ${formatDate(dateKey)}`}
+                  className="w-full text-left bg-white rounded-xl p-3 shadow-sm border border-gray-100 hover:border-blue-300 active:bg-gray-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                >
+                  {/* Date + category */}
+                  <div className="flex items-center gap-2 mb-1">
+                    {cat && (
+                      <span
+                        className="w-3 h-3 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: cat.color }}
+                        aria-hidden="true"
+                      />
+                    )}
+                    <time dateTime={dateKey} className="text-xs font-medium text-gray-500">
+                      {formatDate(dateKey)}
+                    </time>
+                    {cat && (
+                      <span className="text-xs text-gray-400">· {cat.label}</span>
+                    )}
+                  </div>
+
+                  {/* Note with highlighted match */}
+                  {entry?.note && (
+                    <p className="text-sm text-gray-700 line-clamp-2 ml-5">
+                      {highlight(entry.note, query.trim())}
+                    </p>
+                  )}
+
+                  {/* Matched events */}
+                  {entry?.matchedEvents?.length > 0 && (
+                    <ul className="mt-1.5 ml-5 flex flex-col gap-1" aria-label="Matched events">
+                      {entry.matchedEvents.map(event => (
+                        <li
+                          key={event.id}
+                          className="flex items-center gap-1.5 text-xs text-gray-500"
+                        >
+                          <span
+                            className="w-2 h-2 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: event.color }}
+                            aria-hidden="true"
+                          />
+                          {highlight(event.title, query.trim())}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+
+    </section>
+  )
+}
+
+Search.propTypes = {
+  entries: PropTypes.objectOf(
+    PropTypes.shape({
+      note:     PropTypes.string,
+      color:    PropTypes.string,
+      category: PropTypes.string,
+    })
+  ).isRequired,
+  events: PropTypes.arrayOf(
+    PropTypes.shape({
+      id:    PropTypes.number.isRequired,
+      date:  PropTypes.string.isRequired,
+      title: PropTypes.string.isRequired,
+      color: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+ categories: PropTypes.arrayOf(
+    PropTypes.shape({
+      id:    PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      color: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  onSelectDate: PropTypes.func.isRequired,
+}
+====================
+FILE: src/components/Categories.jsx
+====================
+
+import { useState } from 'react'
+import PropTypes from 'prop-types'
+
+const COLOR_PALETTE = [
+  '#fca5a5', '#fb923c', '#fde68a', '#86efac',
+  '#93c5fd', '#c084fc', '#f9a8d4', '#6ee7b7',
+  '#a5b4fc', '#67e8f9', '#d4d4aa', '#6b7280',
+]
+
+const DEFAULT_IDS = ['legs', 'pull', 'push']
+
+export default function Categories({ categories, onAdd, onDelete }) {
+  const [label, setLabel] = useState('')
+  const [color, setColor] = useState(COLOR_PALETTE[0])
+
+  function handleAdd() {
+    if (!label.trim()) return
+    onAdd(label.trim(), color)
+    setLabel('')
+  }
+
+  return (
+    <section aria-label="Manage workout categories">
+      <h2 className="text-base font-semibold text-gray-800 mb-4">
+        Workout Categories
+      </h2>
+
+      {/* Existing categories */}
+      <ul className="flex flex-col gap-2 mb-6" aria-label="Category list">
+        {categories.map(cat => (
+          <li
+            key={cat.id}
+            className="flex items-center justify-between bg-white rounded-xl px-3 py-2.5 shadow-sm border border-gray-100"
+          >
+            <div className="flex items-center gap-2">
+              <span
+                className="w-4 h-4 rounded-full flex-shrink-0"
+                style={{ backgroundColor: cat.color }}
+                aria-hidden="true"
+              />
+              <span className="text-sm font-medium text-gray-800">{cat.label}</span>
+              {DEFAULT_IDS.includes(cat.id) && (
+                <span className="text-xs text-gray-400">(default)</span>
+              )}
+            </div>
+            {!DEFAULT_IDS.includes(cat.id) && (
+              <button
+                onClick={() => onDelete(cat.id)}
+                aria-label={`Delete ${cat.label} category`}
+                className="text-gray-400 hover:text-red-500 transition px-2 py-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+              >
+                ✕
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+
+      {/* Add new category */}
+      <section aria-labelledby="add-cat-label">
+        <h3
+          id="add-cat-label"
+          className="text-sm font-medium text-gray-700 mb-2"
+        >
+          Add new category
+        </h3>
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex flex-col gap-3">
+
+          <div>
+            <label
+              htmlFor="cat-name"
+              className="block text-xs text-gray-500 mb-1"
+            >
+              Name
+            </label>
+            <input
+              id="cat-name"
+              type="text"
+              value={label}
+              onChange={e => setLabel(e.target.value)}
+              placeholder="e.g. Cardio"
+              className="w-full rounded-xl border border-gray-300 p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <p className="text-xs text-gray-500 mb-2">Color</p>
+            <div
+              className="flex flex-wrap gap-2"
+              role="group"
+              aria-label="Category color picker"
+            >
+              {COLOR_PALETTE.map(c => (
+                <button
+                  key={c}
+                  onClick={() => setColor(c)}
+                  aria-label={`Color ${c}${color === c ? ', selected' : ''}`}
+                  aria-pressed={color === c}
+                  className={[
+                    'w-8 h-8 rounded-full transition',
+                    color === c ? 'ring-2 ring-offset-2 ring-blue-500 scale-110' : '',
+                  ].join(' ')}
+                  style={{ backgroundColor: c }}
+                />
+              ))}
+            </div>
+          </div>
+
+          <button
+            onClick={handleAdd}
+            disabled={!label.trim()}
+            className="w-full bg-blue-500 hover:bg-blue-600 active:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium rounded-xl py-2.5 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            + Add Category
+          </button>
+
+        </div>
+      </section>
+    </section>
+  )
+}
+
+Categories.propTypes = {
+  categories: PropTypes.arrayOf(
+    PropTypes.shape({
+      id:    PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      color: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  onAdd:    PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+}
+</file>
+
+<file path="index.html">
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + React</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+</file>
+
+<file path="keystore-base64.txt">
+MIIK0AIBAzCCCnoGCSqGSIb3DQEHAaCCCmsEggpnMIIKYzCCBboGCSqGSIb3DQEHAaCCBasEggWnMIIFozCCBZ8GCyqGSIb3DQEMCgECoIIFQDCCBTwwZgYJKoZIhvcNAQUNMFkwOAYJKoZIhvcNAQUMMCsEFI+09EX/JvMxsURT7Go6Eu3lrZwEAgInEAIBIDAMBggqhkiG9w0CCQUAMB0GCWCGSAFlAwQBKgQQoaGY12/ucxwBA0PKrR0xMgSCBNCWVgLhDKbb7sA8PTZvm0P+XGcDdE+RvbBEKiROetx5f68Kh+R3RtK7y8ccsa9VEy7DmtQSbccY6/nmcol7oL2vaqbVJLFbB+TRxRYFSliUwbaNa8WfSGEPZkS/51ydUmWexAdAma8RtP85Dzz8Jdl516+6uq+NXK+J1rlMod17uh1Fu0jnGXzVFX2Njp8ZMYep5OhS9V+cbFwiPSRYQ/jhhZMnPM1HtV3nZrAN+B4FRyvWHw6+nuZz1OfOw48efkSIm8Wc7PhlXnm4qXDvheX3vjuuIM22vHlRTcUI2wnlsv9pt6GzIm8lVMD3I7VaeaguLNZAM1zb44C/JnhVXMO1C//APRiwlfJ8mDO+2X3QynJARqmrxKfstryW2Q0pLFEuladcJYk8GlqnQe9AEDtgpDwIoL2h3oub51g2dVntt7r9RAdh0ExPithNM+DeNWy6gQ5DFThK4hploDGaO/bmnM2U2ndmWBNsQM7ZmVStwiIuEeC392Y/p6TjfmfTMq580NuM8Go//2LN7JUCs1h7nZqvaC1t5rdY/EvZJAj0xOaodsUYCtRxUsbn6a1ns95CTdXCcgO8ek9UWfaHyY/pA1hdjaWkQoTABzHZOHNRSYdNOMGd9Az2QJzmSTifpXc8V2SsDlk0jxRSjXWNnaRnNiBlc/q8CjVT6C+rzyFGrOmUD49HRVzEkm3p0+g8lAWJy7y3dGvm/b0ZWuj3M0aXCc2fEuSCeZFoZxZE6c7hIz4Q1cbXcZX/Mx+9pT836E5XygowmddRSaMUKW+xGw8emP0sYqntQ9arGa2ekdVoxDXBy6QtFZ1RWroZL4/I98BktMy6kLV6Hgz1pvnVNZxD26+zgidFfXmIC5YQ+XnnJmZ61dhLw+1j5lXshDDamIxASpZrHKvxm0RZAZRh6TJrcxAlR7ZkdtK2+zitf4BEtGPab+TYbWDYrMFPgikGZ8bwhGH9u9JlGgdUDAgpowkFehYM+inO5dR73sHhA5iE9P9QBZ3px++xIKJ1vpSxIoGm3R8NGE7k8/Uu1JQQ5OXmJ2Vd4mA9RVM80rg+IhapioFCI2x9i4PQ5KUbMpCmL40E2mwaKp1lXkiuTErj9nafQGXkVGLNbl0sbF2c6SbwFlx8HQe82VB+dU2lBLXqBHLCkG1/0KVSotijkRIjfUUxF97o5fNH1rTIVsj6PhXzp59SCtpbE7JgQw2IYUmicU7YF5b0vqvVACefXMDsz7JSx6D7z7NTHPEFbqmmcgUUslj6hRE3G7KW/Km3/doy2PSVLiEoaYt9nb2SutQzhGdKmZOfrkpDyTrNS8bVg3483aae4HxnDvZlZZy3TQbMgnUK5xqLTVpbZDhbOx6eYSpYwKbyShHFKYA8DoVOF7zpskfyMgWVIbElmJlk3du2Um25I/wgKwPTuKAnUosDvcbadccW0vsUzGn/JsaFtzANtOVZNRKusV1yUmPvHZkaHLe6Euz1p5WB5Bm4ugYOvZvRcJxX8wEXlbtYFv9mHftU58edqEx5ONXjdEyyppZqxi3d4vhXCUDY04ImALPDYLTfCFV5egSxlNouyEBKtMrBEE8n2h7EsJGus85rFFmvu9EbEjMOU618V1DCGhEhdQvAnzUOteqAwwobLpwIRZCtGTFMMCcGCSqGSIb3DQEJFDEaHhgAbQB5AC0AZABpAGEAcgB5AC0AawBlAHkwIQYJKoZIhvcNAQkVMRQEElRpbWUgMTc4ODQ5OTYxMTQwNTCCBKEGCSqGSIb3DQEHBqCCBJIwggSOAgEAMIIEhwYJKoZIhvcNAQcBMGYGCSqGSIb3DQEFDTBZMDgGCSqGSIb3DQEFDDArBBQofASXrzr+mpaFP4JKP3Txg9r1ewICJxACASAwDAYIKoZIhvcNAgkFADAdBglghkgBZQMEASoEENMicJC9QcFOvaBliLBAUe+AggQQ3MUjzz4GFH3/UbE76RPixGM8gMDQfFrHiP9NTZNSPiTVZa/+uKJ+I0KVAnE08neG5io0+rPcPWS0lUqLbH32SsPBjqZzDgXvj8orZYVXF90Og05VkKGyhovXMcXpSDC8YdWnhlISSHA+AUgx2sSgvG2aeEOcNjuPN3Kcp2001pHja1rKoZH/a7IQM/qwTVCplyabI9kbi33uG7QLkn7MpNOSyy4OxuryhIA6kikTaoO1Hmq77Ety1BbKMZEGfv9pAJpNxuZbAjQAyQP+S89WSiapQ5FzJee4Bdi/cDSotTGMPluH4lObfbeReuV5bFvVMCKrPQbuKv46CiniijwKQX3+76I12bFsTIU3SIUifiRY/6dkwk6PfY/TI7gKuIDOSyOZBFo9p3RhK+ticnyaGt+MSEWTXu3KzKniPSMsmd2xs/dVvQAOFhzf2s3hOssSMdgCpbGwN7VTp3fXWuQYUjzM/Ryt/qGiNjTmfH6FhBBx8Gtvk3pL3qAIppSOfTvrHWaA+E3vGDn6hRtk+cUyagatG/aplwPqno/5NAA8WgoRFOIJ8xrTOSHOCjfKz00mgwSLXckT8KlJNaEt5SkNDM50yAM+Gngfm6GCOicudVvsRUT4uvrj0OLDgCTM8mAcgXXB6xAGK2qUIldGWZl7G/kM1jVGaAoULFa5VUuhuJe+xjs16rZP1PXUPh/KXF9D12qWariVLjV7xdwuYLJRA3+NUjh/Yg0SOtzFQy87eokJdYq/eFcpq70lw6aFowZI/OT7pHenktXtMF+48nwdd9EUDti75dpJaG/LRwlPaqAcQtPjRQ/7Y33p3zPK5/mj3VGmvkK07RINBUhPZpkab9fvztbJns0o0FmYjyQsdAvEmm/3OysqzabTip+mKKXkOUheGUq+VJ5GylxzkGU3drxutEoxwc9O1/9i396bGD3oMacyBdVK2ofd3NA0QBLTYR47YLms0efM0saWLRH+7KYp8TnxhISlQJkWuxe/WISALixNfpUA/J+NglaXYKvZLnhqgcJLqHsfGt3h0ohS8z6r+9kl3uE0HC/F2OSOF+qrYdrfLtCc8ojts5N1zVTsgfVpRSd2fgSekqP0KHoCed07lEhPaeWGVwYwhzWR343qdso9WaMb0SCfRvI3GiaqBnFdyRM8RqMRX4DQ584sLn7ouKn8Dow40b38wQSfZuHnJYiQezNMgf1dOoBINfxYACALFso5uksap9/4kc2p5SiDjAL3cQo3q9iVxHVNWa9eldj3xkbuQCIjsFurfu1057EXuSVzJURGI/HZy7KTamQUMrZlltFg9K0Ow2Re1wW8HjSA9vZp2ZomxdEd6aaKPzw5DkzjSBRTPaQGMQLcy8gPYhT2sNmTReNRk/oJuRYwTTAxMA0GCWCGSAFlAwQCAQUABCDr2pEN9mdblySe1uhsc6ZlTy0zzFMj9ZNdYYQ+4y4EnAQUOzd6FN5/0V8wdNsOnNzCB9XqppkCAicQ
+</file>
+
+<file path="pnpm-workspace.yaml">
+allowBuilds:
+  esbuild: false
+</file>
+
+<file path="postcss.config.js">
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+</file>
+
+<file path="README.md">
+# React + Vite
+
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+
+Currently, two official plugins are available:
+
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+</file>
+
+<file path="tailwind.config.js">
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,jsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}
+</file>
+
+<file path="vite.config.js">
+import { defineConfig } from 'vite'
+import react from '@vitejs/plugin-react'
+
+// https://vite.dev/config/
+export default defineConfig({
+  plugins: [react()],
+})
+</file>
+
+<file path="src/components/Calendar.jsx">
+import { useState } from "react"
+import DayCell from "./DayCell"
+import { useSwipeable } from "react-swipeable"
+import PropTypes from 'prop-types'
+
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+function getDaysInMonth(year, month) {
+  return new Date(year, month + 1, 0).getDate()
+}
+
+function getFirstDayOfMonth(year, month) {
+  const day = new Date(year, month, 1).getDay()
+  return (day + 6) % 7
+}
+
+export default function Calendar({ entries, events, onSelectDate }) {
+  const today = new Date()
+  const [year,  setYear]  = useState(today.getFullYear())
+  const [month, setMonth] = useState(today.getMonth())
+  
+  const isCurrentMonth = year === today.getFullYear() && month === today.getMonth()
+  const isFuture = year > today.getFullYear() ||
+    (year === today.getFullYear() && month > today.getMonth())
+  const daysInMonth  = getDaysInMonth(year, month)
+  const firstDaySlot = getFirstDayOfMonth(year, month)
+
+  const monthLabel = new Date(year, month).toLocaleString("default", {
+    month: "long", year: "numeric"
+  })
+
+  function prevMonth() {
+    if (month === 0) { setMonth(11); setYear(y => y - 1) }
+    else setMonth(m => m - 1)
+  }
+
+  function nextMonth() {
+    if (month === 11) { setMonth(0); setYear(y => y + 1) }
+    else setMonth(m => m + 1)
+  }
+
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft:  () => nextMonth(),
+    onSwipedRight: () => prevMonth(),
+    preventScrollOnSwipe: false,
+    trackMouse: false,
+  })
+
+  const cells = []
+
+  // empty slots before day 1
+  for (let i = 0; i < firstDaySlot; i++) {
+    cells.push(<div key={`empty-${i}`} />)
+  }
+
+  // actual days
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+    const isToday =
+      day === today.getDate() &&
+      month === today.getMonth() &&
+      year === today.getFullYear()
+
+    const dayEvents  = events.filter(e => e.date === dateKey)
+    const entryColor = entries[dateKey]?.color || null
+
+    cells.push(
+      <DayCell
+        key={dateKey}
+        day={day}
+        dateKey={dateKey}
+        isToday={isToday}
+        entryColor={entryColor}
+        events={dayEvents}
+        onClick={() => onSelectDate(dateKey)}
+      />
+    )
+  }
+
+  return (
+    <section
+      {...swipeHandlers}
+      aria-label="Calendar"
+      className="flex-1 flex flex-col -mx-4 px-4 sm:mx-0 sm:px-0"
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <button
+          onClick={prevMonth}
+          aria-label="Previous month"
+          className="p-2 rounded-full hover:bg-gray-200 active:bg-gray-300 transition"
+        >
+          ◀
+        </button>
+        <h2 className="text-lg font-semibold">{monthLabel}</h2>
+        <button
+          onClick={nextMonth}
+          aria-label="Next month"
+          className="p-2 rounded-full hover:bg-gray-200 active:bg-gray-300 transition"
+        >
+          ▶
+        </button>
+      </div>
+{/* Today button */}
+      {!isCurrentMonth && (
+        <div className="flex justify-center mb-2 -mt-2">
+          <button
+            onClick={() => { setYear(today.getFullYear()); setMonth(today.getMonth()) }}
+            aria-label="Go to current month"
+            className="text-base font-medium text-blue-600 hover:text-blue-700 px-4 py-2 rounded-full hover:bg-blue-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            {isFuture ? (
+              <>
+                <span className="text-3xl align-baseline" aria-hidden="true">↩</span>{' '}Today
+              </>
+            ) : (
+              <>
+                Today{' '}<span className="text-3xl align-baseline" aria-hidden="true">↪</span>
+              </>
+            )}
+            </button>
+        </div>
+      )}
+
+      {/* Day labels */}
+      <div className="grid grid-cols-7 mb-1">
+        {DAYS.map(d => (
+          <div
+            key={d}
+            className="text-center text-xs font-medium text-gray-500 py-1"
+            aria-hidden="true"
+          >
+            {d}
+          </div>
+        ))}
+      </div>
+
+      {/* Day grid */}
+      <div className="grid grid-cols-7 gap-1">
+        {cells}
+      </div>
+    </section>
+  )
+}
+
+Calendar.propTypes = {
+  entries: PropTypes.objectOf(
+    PropTypes.shape({
+      note:     PropTypes.string,
+      color:    PropTypes.string,
+      category: PropTypes.string,
+    })
+  ).isRequired,
+  events: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      date: PropTypes.string.isRequired,
+      title: PropTypes.string.isRequired,
+      color: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  onSelectDate: PropTypes.func.isRequired,
+}
+</file>
+
+<file path="src/components/Categories.jsx">
+import { useState } from 'react'
+import PropTypes from 'prop-types'
+import { getUsedColors } from '../utils/colorUsage'
+
+const COLOR_PALETTE = [
+  '#fca5a5', '#fb923c', '#fde68a', '#86efac',
+  '#93c5fd', '#c084fc', '#f9a8d4', '#6ee7b7',
+  '#a5b4fc', '#67e8f9', '#d4d4aa', '#6b7280',
+]
+
+const DEFAULT_IDS = ['legs', 'pull', 'push']
+
+export default function Categories({ categories, entries, events, onAdd, onDelete }) {
+  const usedColors = getUsedColors({ categories, entries, events })
+  const availableColors = COLOR_PALETTE.filter(c => !usedColors.has(c))
+
+  const [label, setLabel] = useState('')
+  const [selectedColor, setSelectedColor] = useState(null)
+
+  const color = selectedColor && availableColors.includes(selectedColor)
+    ? selectedColor
+    : availableColors[0] ?? null
+
+  function handleAdd() {
+    if (!label.trim() || !color) return
+    onAdd(label.trim(), color)
+    setLabel('')
+    setSelectedColor(null)
+  }
+
+  return (
+    <section aria-label="Manage workout categories">
+      <h2 className="text-base font-semibold text-gray-800 mb-4">
+        Workout Categories
+      </h2>
+
+      {/* Existing categories */}
+      <ul className="flex flex-col gap-2 mb-6" aria-label="Category list">
+        {categories.map(cat => (
+          <li
+            key={cat.id}
+            className="flex items-center justify-between bg-white rounded-xl px-3 py-2.5 shadow-sm border border-gray-100"
+          >
+            <div className="flex items-center gap-2">
+              <span
+                className="w-4 h-4 rounded-full flex-shrink-0"
+                style={{ backgroundColor: cat.color }}
+                aria-hidden="true"
+              />
+              <span className="text-sm font-medium text-gray-800">{cat.label}</span>
+              {DEFAULT_IDS.includes(cat.id) && (
+                <span className="text-xs text-gray-400">(default)</span>
+              )}
+            </div>
+            {!DEFAULT_IDS.includes(cat.id) && (
+              <button
+                onClick={() => onDelete(cat.id)}
+                aria-label={`Delete ${cat.label} category`}
+                className="text-gray-400 hover:text-red-500 transition px-2 py-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+              >
+                ✕
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+
+      {/* Add new category */}
+      <section aria-labelledby="add-cat-label">
+        <h3
+          id="add-cat-label"
+          className="text-sm font-medium text-gray-700 mb-2"
+        >
+          Add new category
+        </h3>
+        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex flex-col gap-3">
+
+          <div>
+            <label
+              htmlFor="cat-name"
+              className="block text-xs text-gray-500 mb-1"
+            >
+              Name
+            </label>
+            <input
+              id="cat-name"
+              type="text"
+              value={label}
+              onChange={e => setLabel(e.target.value)}
+              placeholder="e.g. Cardio"
+              className="w-full rounded-xl border border-gray-300 p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <div>
+            <p className="text-xs text-gray-500 mb-2">Color</p>
+            {availableColors.length > 0 ? (
+              <div
+                className="flex flex-wrap gap-2"
+                role="group"
+                aria-label="Category color picker"
+              >
+                {availableColors.map(c => (
+                  <button
+                    key={c}
+                    onClick={() => setSelectedColor(c)}
+                    aria-label={`Color ${c}${color === c ? ', selected' : ''}`}
+                    aria-pressed={color === c}
+                    className={[
+                      'w-8 h-8 rounded-full transition',
+                      color === c ? 'ring-2 ring-offset-2 ring-blue-500 scale-110' : '',
+                    ].join(' ')}
+                    style={{ backgroundColor: c }}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-amber-600 bg-amber-50 rounded-lg px-3 py-2">
+                Every preset color is already used by a category, note, or event. Delete one of those to free up a color before adding a new category.
+              </p>
+            )}
+          </div>
+
+          <button
+            onClick={handleAdd}
+            disabled={!label.trim() || !color}
+            className="w-full bg-blue-500 hover:bg-blue-600 active:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium rounded-xl py-2.5 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          >
+            + Add Category
+          </button>
+
+        </div>
+      </section>
+    </section>
+  )
+}
+
+Categories.propTypes = {
+  categories: PropTypes.arrayOf(
+    PropTypes.shape({
+      id:    PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      color: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  entries: PropTypes.objectOf(
+    PropTypes.shape({
+      note:     PropTypes.string,
+      color:    PropTypes.string,
+      category: PropTypes.string,
+    })
+  ).isRequired,
+  events: PropTypes.arrayOf(
+    PropTypes.shape({
+      id:    PropTypes.number.isRequired,
+      date:  PropTypes.string.isRequired,
+      title: PropTypes.string.isRequired,
+      color: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  onAdd:    PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+}
+</file>
+
+<file path="src/components/DiaryEntry.jsx">
+import { useState } from 'react'
+import PropTypes from 'prop-types'
+import { getUsedColors } from '../utils/colorUsage'
+
+const ENTRY_COLORS = [
+  { label: 'None',   value: null,      bg: 'bg-white border-2 border-gray-300' },
+  { label: 'Yellow', value: '#fde68a', bg: 'bg-yellow-200' },
+  { label: 'Green',  value: '#bbf7d0', bg: 'bg-green-200' },
+  { label: 'Blue',   value: '#bfdbfe', bg: 'bg-blue-200' },
+  { label: 'Pink',   value: '#fbcfe8', bg: 'bg-pink-200' },
+  { label: 'Purple', value: '#e9d5ff', bg: 'bg-purple-200' },
+  { label: 'Orange', value: '#fed7aa', bg: 'bg-orange-200' },
+]
+
+const EVENT_COLORS = [
+  { label: 'Red',    value: '#f87171' },
+  { label: 'Orange', value: '#fbbf24' },
+  { label: 'Yellow', value: '#facc15' },
+  { label: 'Green',  value: '#4ade80' },
+  { label: 'Teal',   value: '#2dd4bf' },
+  { label: 'Cyan',   value: '#22d3ee' },
+  { label: 'Blue',   value: '#60a5fa' },
+  { label: 'Indigo', value: '#818cf8' },
+  { label: 'Purple', value: '#a78bfa' },
+  { label: 'Pink',   value: '#f472b6' },
+]
+
+export default function DiaryEntry({
+  dateKey, entry, entries, events, categories,
+  onSave, onDelete, onAddEvent, onDeleteEvent, onClose
+}) {
+  const [note,               setNote]               = useState(entry?.note     || '')
+  const [color,               setColor]              = useState(entry?.color    || null)
+  const [category,            setCategory]           = useState(entry?.category || null)
+  const [eventTitle,          setEventTitle]         = useState('')
+  const [selectedEventColor,  setSelectedEventColor] = useState(null)
+
+  const dayEvents = events.filter(e => e.date === dateKey)
+
+  // Colors already claimed by a category, a manually-highlighted note, or an
+  // event elsewhere in the app. This entry's own saved color is excluded so
+  // it doesn't vanish from the list while you're still editing it.
+  const usedColors = getUsedColors({ categories, entries, events, excludeDateKey: dateKey })
+
+  const availableEntryColors = ENTRY_COLORS.filter(
+    c => c.value === null || !usedColors.has(c.value)
+  )
+  const availableEventColors = EVENT_COLORS.filter(c => !usedColors.has(c.value))
+
+  const eventColor = selectedEventColor && availableEventColors.some(c => c.value === selectedEventColor)
+    ? selectedEventColor
+    : availableEventColors[0]?.value ?? null
+
+  const formattedDate = new Date(dateKey + 'T00:00:00').toLocaleDateString('default', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  })
+
+  function handleCategoryChange(val) {
+    if (!val) {
+      setCategory(null)
+      setColor(null)
+    } else {
+      const cat = categories.find(c => c.id === val)
+      setCategory(val)
+      setColor(cat.color)
+    }
+  }
+
+  function handleSave() {
+    onSave(dateKey, note, color, category)
+    onClose()
+  }
+
+  function handleDelete() {
+    onDelete(dateKey)
+    onClose()
+  }
+
+  function handleAddEvent() {
+    if (!eventTitle.trim() || !eventColor) return
+    onAddEvent(dateKey, eventTitle.trim(), eventColor)
+    setEventTitle('')
+    setSelectedEventColor(null)
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Diary entry for ${formattedDate}`}
+      className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-4"
+    >
+      <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-xl">
+
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-100">
+          <h2 className="text-base font-semibold text-gray-800">{formattedDate}</h2>
+          <button
+            onClick={onClose}
+            aria-label="Close diary entry"
+            className="p-2 rounded-full hover:bg-gray-100 active:bg-gray-200 transition text-gray-500"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="p-4 flex flex-col gap-5">
+
+          {/* Workout category dropdown */}
+          <section aria-labelledby="category-label">
+            <label
+              id="category-label"
+              htmlFor="workout-category"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Workout type
+            </label>
+            <div className="relative">
+              <select
+                id="workout-category"
+                value={category || ''}
+                onChange={e => handleCategoryChange(e.target.value || null)}
+                className="w-full rounded-xl border border-gray-300 p-2.5 text-sm bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 pr-8"
+              >
+                <option value="">— None —</option>
+                {categories.map(c => (
+                  <option key={c.id} value={c.id}>{c.label}</option>
+                ))}
+              </select>
+              <span
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                aria-hidden="true"
+              >
+                ▾
+              </span>
+            </div>
+            {category && (
+              <p className="mt-1.5 text-xs text-gray-500 flex items-center gap-1.5">
+                <span
+                  className="inline-block w-3 h-3 rounded-full"
+                  style={{ backgroundColor: color }}
+                  aria-hidden="true"
+                />
+                Day will be highlighted in{' '}
+                {categories.find(c => c.id === category)?.label} color
+              </p>
+            )}
+          </section>
+
+          {/* Manual highlight — hidden when category is selected */}
+          {!category && (
+            <section aria-labelledby="color-label">
+              <p id="color-label" className="text-sm font-medium text-gray-700 mb-2">
+                Highlight color
+              </p>
+              <div className="flex gap-2 flex-wrap" role="group" aria-labelledby="color-label">
+                {availableEntryColors.map(c => (
+                  <button
+                    key={c.label}
+                    onClick={() => setColor(c.value)}
+                    aria-label={`${c.label} highlight${color === c.value ? ', selected' : ''}`}
+                    aria-pressed={color === c.value}
+                    className={[
+                      'w-8 h-8 rounded-full transition',
+                      c.bg,
+                      color === c.value ? 'ring-2 ring-offset-2 ring-blue-500 scale-110' : '',
+                    ].join(' ')}
+                  />
+                ))}
+              </div>
+              {availableEntryColors.length === 1 && (
+                <p className="mt-2 text-xs text-amber-600">
+                  Every highlight color is already used by a category, note, or event. Pick a workout type above, or free up a color elsewhere.
+                </p>
+              )}
+            </section>
+          )}
+
+          {/* Notes */}
+          <section aria-labelledby="notes-label">
+            <label
+              id="notes-label"
+              htmlFor="diary-note"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Notes
+            </label>
+            <textarea
+              id="diary-note"
+              value={note}
+              onChange={e => setNote(e.target.value)}
+              placeholder="Write about your day..."
+              rows={4}
+              className="w-full rounded-xl border border-gray-300 p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </section>
+
+          {/* Save / Delete */}
+          <div className="flex gap-2">
+            <button
+              onClick={handleSave}
+              className="flex-1 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-medium rounded-xl py-2.5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+            >
+              Save
+            </button>
+            {entry && (
+              <button
+                onClick={handleDelete}
+                aria-label="Delete this diary entry"
+                className="px-4 bg-red-100 hover:bg-red-200 active:bg-red-300 text-red-600 font-medium rounded-xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+              >
+                Delete
+              </button>
+            )}
+          </div>
+
+          {/* Events */}
+          <section aria-labelledby="events-label">
+            <h3 id="events-label" className="text-sm font-medium text-gray-700 mb-2">
+              Events
+            </h3>
+            {dayEvents.length > 0 && (
+              <ul aria-label="Events for this day" className="flex flex-col gap-2 mb-3">
+                {dayEvents.map(event => (
+                  <li
+                    key={event.id}
+                    className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="w-3 h-3 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: event.color }}
+                        aria-hidden="true"
+                      />
+                      <span className="text-sm text-gray-800">{event.title}</span>
+                    </div>
+                    <button
+                      onClick={() => onDeleteEvent(event.id)}
+                      aria-label={`Delete event: ${event.title}`}
+                      className="text-gray-400 hover:text-red-500 transition text-xs px-2 py-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                    >
+                      ✕
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="flex flex-col gap-2">
+              <input
+                type="text"
+                value={eventTitle}
+                onChange={e => setEventTitle(e.target.value)}
+                placeholder="New event title..."
+                aria-label="New event title"
+                className="w-full rounded-xl border border-gray-300 p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              {availableEventColors.length > 0 ? (
+                <div className="flex gap-2 items-center flex-wrap" role="group" aria-label="Event color">
+                  {availableEventColors.map(c => (
+                    <button
+                      key={c.label}
+                      onClick={() => setSelectedEventColor(c.value)}
+                      aria-label={`${c.label} event color${eventColor === c.value ? ', selected' : ''}`}
+                      aria-pressed={eventColor === c.value}
+                      className={[
+                        'w-7 h-7 rounded-full transition',
+                        eventColor === c.value ? 'ring-2 ring-offset-2 ring-blue-500 scale-110' : '',
+                      ].join(' ')}
+                      style={{ backgroundColor: c.value }}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-amber-600">
+                  Every event color is already in use. Delete a category, note highlight, or event to free one up.
+                </p>
+              )}
+              <button
+                onClick={handleAddEvent}
+                disabled={!eventTitle.trim() || !eventColor}
+                className="w-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 disabled:opacity-40 disabled:cursor-not-allowed text-gray-700 font-medium rounded-xl py-2 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              >
+                + Add Event
+              </button>
+            </div>
+          </section>
+
+        </div>
+      </div>
+    </div>
+  )
+}
+
+DiaryEntry.propTypes = {
+  dateKey: PropTypes.string.isRequired,
+  entry: PropTypes.shape({
+    note:     PropTypes.string,
+    color:    PropTypes.string,
+    category: PropTypes.string,
+  }),
+  entries: PropTypes.objectOf(
+    PropTypes.shape({
+      note:     PropTypes.string,
+      color:    PropTypes.string,
+      category: PropTypes.string,
+    })
+  ).isRequired,
+  events: PropTypes.arrayOf(
+    PropTypes.shape({
+      id:    PropTypes.number.isRequired,
+      date:  PropTypes.string.isRequired,
+      title: PropTypes.string.isRequired,
+      color: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  categories: PropTypes.arrayOf(
+    PropTypes.shape({
+      id:    PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      color: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  onSave:        PropTypes.func.isRequired,
+  onDelete:      PropTypes.func.isRequired,
+  onAddEvent:    PropTypes.func.isRequired,
+  onDeleteEvent: PropTypes.func.isRequired,
+  onClose:       PropTypes.func.isRequired,
+}
+
+DiaryEntry.defaultProps = {
+  entry: null,
+}
+</file>
+
+<file path="src/components/History.jsx">
+import { useState } from 'react'
+import PropTypes from 'prop-types'
+import { truncateNote } from '../utils/notePreview'
+
+function formatDate(dateKey) {
+  return new Date(dateKey + 'T00:00:00').toLocaleDateString('default', {
+    weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
+  })
+}
+
+function daysBetween(dateKeyA, dateKeyB) {
+  const a = new Date(dateKeyA + 'T00:00:00')
+  const b = new Date(dateKeyB + 'T00:00:00')
+  return Math.round((a - b) / (1000 * 60 * 60 * 24))
+}
+
+export default function History({ entries, categories, onSelectDate }) {
+  const [categoryId, setCategoryId] = useState(categories[0]?.id || '')
+
+  const cat = categories.find(c => c.id === categoryId)
+
+  const filtered = Object.entries(entries)
+    .filter(([, entry]) => entry.category === categoryId)
+    .sort(([a], [b]) => b.localeCompare(a))
+
+  return (
+    <section aria-label="Workout history">
+
+      {/* Category tabs */}
+      <div role="tablist" aria-label="Workout category" className="flex gap-2 mb-4 flex-wrap">
+        {categories.map(c => (
+          <button
+            key={c.id}
+            role="tab"
+            aria-selected={categoryId === c.id}
+            onClick={() => setCategoryId(c.id)}
+            className={[
+              'flex-1 py-2 rounded-xl text-sm font-medium transition min-w-[4rem]',
+              categoryId === c.id
+                ? 'ring-2 ring-blue-500 shadow-sm'
+                : 'bg-gray-100 hover:bg-gray-200 text-gray-600',
+            ].join(' ')}
+            style={categoryId === c.id ? { backgroundColor: c.color } : {}}
+          >
+            {c.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Count */}
+      <p className="text-xs text-gray-500 mb-3" aria-live="polite">
+        {filtered.length} {filtered.length === 1 ? 'entry' : 'entries'} found
+      </p>
+
+      {/* Empty state */}
+      {filtered.length === 0 ? (
+        <div className="text-center py-12 text-gray-400">
+          <p className="text-4xl mb-2" aria-hidden="true">📭</p>
+          <p className="text-sm">No {cat?.label} entries yet</p>
+        </div>
+      ) : (
+        <ul className="flex flex-col gap-3" aria-label={`${cat?.label} entries`}>
+          {filtered.map(([dateKey, entry], index) => {
+            const previousDateKey = index + 1 < filtered.length ? filtered[index + 1][0] : null
+            const daysSincePrevious = previousDateKey ? daysBetween(dateKey, previousDateKey) : null
+            const { text: notePreview, truncated: noteTruncated } = truncateNote(entry.note)
+
+            return (
+              <li key={dateKey}>
+                <button
+                  onClick={() => onSelectDate(dateKey)}
+                  aria-label={`Open entry for ${formatDate(dateKey)}${daysSincePrevious !== null ? `, ${daysSincePrevious} day${daysSincePrevious === 1 ? '' : 's'} since the previous ${cat?.label} entry` : ''}${noteTruncated ? ', note truncated, open to read the full entry' : ''}`}
+                  className="w-full text-left bg-white rounded-xl p-3 shadow-sm border border-gray-100 hover:border-blue-300 active:bg-gray-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                >
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                    <span
+                      className="w-3 h-3 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: cat?.color }}
+                      aria-hidden="true"
+                    />
+                    <time dateTime={dateKey} className="text-xs font-medium text-gray-500">
+                      {formatDate(dateKey)}
+                    </time>
+                    {daysSincePrevious !== null && (
+                      <span className="text-xs text-gray-400" aria-hidden="true">
+                        · {daysSincePrevious} {daysSincePrevious === 1 ? 'day' : 'days'} since last
+                      </span>
+                    )}
+                  </div>
+                  {entry.note ? (
+                    <div className="ml-5">
+                      <p className="text-sm text-gray-700 whitespace-pre-line">{notePreview}</p>
+                      {noteTruncated && (
+                        <span className="text-xs text-blue-600 font-medium" aria-hidden="true">
+                          Read more
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-400 italic ml-5">No notes</p>
+                  )}
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+
+    </section>
+  )
+}
+
+History.propTypes = {
+  entries: PropTypes.objectOf(
+    PropTypes.shape({
+      note:     PropTypes.string,
+      color:    PropTypes.string,
+      category: PropTypes.string,
+    })
+  ).isRequired,
+  categories: PropTypes.arrayOf(
+    PropTypes.shape({
+      id:    PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      color: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  onSelectDate: PropTypes.func.isRequired,
+}
+</file>
+
+<file path="src/components/Search.jsx">
+import { useState, useMemo, useRef, useEffect } from 'react'
+import PropTypes from 'prop-types'
+import { truncateNote } from '../utils/notePreview'
+
+function formatDate(dateKey) {
+  return new Date(dateKey + 'T00:00:00').toLocaleDateString('default', {
+    weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
+  })
+}
+
+function highlight(text, query) {
+  if (!query) return text
+  const parts = text.split(new RegExp(`(${query})`, 'gi'))
+  return parts.map((part, i) =>
+    part.toLowerCase() === query.toLowerCase()
+      ? <mark key={i} className="bg-yellow-200 rounded px-0.5">{part}</mark>
+      : part
+  )
+}
+
+export default function Search({ entries, events, categories, onSelectDate }) {
+  const [query, setQuery] = useState('')
+  const inputRef = useRef(null)
+  useEffect(() => { inputRef.current?.focus() }, [])
+
+  const trimmed = query.trim().toLowerCase()
+
+  const results = useMemo(() => {
+    if (!trimmed) return []
+
+    const matched = {}
+
+    Object.entries(entries).forEach(([dateKey, entry]) => {
+      if (entry.note?.toLowerCase().includes(trimmed)) {
+        matched[dateKey] = { ...entry, matchedEvents: [] }
+      }
+    })
+
+    events.forEach(event => {
+      if (event.title.toLowerCase().includes(trimmed)) {
+        if (!matched[event.date]) {
+          matched[event.date] = {
+            ...entries[event.date],
+            matchedEvents: [event]
+          }
+        } else {
+          matched[event.date].matchedEvents.push(event)
+        }
+      }
+    })
+
+    return Object.entries(matched)
+      .sort(([a], [b]) => b.localeCompare(a))
+  }, [trimmed, entries, events])
+
+  return (
+    <section aria-label="Search diary">
+
+      {/* Search input */}
+      <div className="relative mb-4">
+        <span
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+          aria-hidden="true"
+        >
+          🔍
+        </span>
+        <input
+          type="search"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          placeholder="Search notes and events..."
+          aria-label="Search notes and events"
+          ref={inputRef}
+          className="w-full rounded-xl border border-gray-300 pl-9 pr-9 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        {query && (
+          <button
+            onClick={() => setQuery('')}
+            aria-label="Clear search"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+
+      {/* Results count */}
+      {trimmed && (
+        <p className="text-xs text-gray-500 mb-3" aria-live="polite" aria-atomic="true">
+          {results.length} {results.length === 1 ? 'result' : 'results'} for &ldquo;{query.trim()}&rdquo;
+        </p>
+      )}
+
+      {/* Empty states */}
+      {!trimmed && (
+        <div className="text-center py-12 text-gray-400">
+          <p className="text-4xl mb-2" aria-hidden="true">🔍</p>
+          <p className="text-sm">Start typing to search your diary</p>
+        </div>
+      )}
+
+      {trimmed && results.length === 0 && (
+        <div className="text-center py-12 text-gray-400">
+          <p className="text-4xl mb-2" aria-hidden="true">📭</p>
+          <p className="text-sm">No results found</p>
+        </div>
+      )}
+
+      {/* Results */}
+      {results.length > 0 && (
+        <ul className="flex flex-col gap-3" aria-label="Search results">
+          {results.map(([dateKey, entry]) => {
+            const cat = categories.find(c => c.id === entry?.category)
+            const { text: notePreview, truncated: noteTruncated } = truncateNote(entry?.note)
+
+            return (
+              <li key={dateKey}>
+                <button
+                  onClick={() => onSelectDate(dateKey)}
+                  aria-label={`Open entry for ${formatDate(dateKey)}${noteTruncated ? ', note truncated, open to read the full entry' : ''}`}
+                  className="w-full text-left bg-white rounded-xl p-3 shadow-sm border border-gray-100 hover:border-blue-300 active:bg-gray-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                >
+                  {/* Date + category */}
+                  <div className="flex items-center gap-2 mb-1">
+                    {cat && (
+                      <span
+                        className="w-3 h-3 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: cat.color }}
+                        aria-hidden="true"
+                      />
+                    )}
+                    <time dateTime={dateKey} className="text-xs font-medium text-gray-500">
+                      {formatDate(dateKey)}
+                    </time>
+                    {cat && (
+                      <span className="text-xs text-gray-400">· {cat.label}</span>
+                    )}
+                  </div>
+
+                  {/* Note with highlighted match */}
+                  {entry?.note && (
+                    <div className="ml-5">
+                      <p className="text-sm text-gray-700 whitespace-pre-line">
+                        {highlight(notePreview, query.trim())}
+                      </p>
+                      {noteTruncated && (
+                        <span className="text-xs text-blue-600 font-medium" aria-hidden="true">
+                          Read more
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Matched events */}
+                  {entry?.matchedEvents?.length > 0 && (
+                    <ul className="mt-1.5 ml-5 flex flex-col gap-1" aria-label="Matched events">
+                      {entry.matchedEvents.map(event => (
+                        <li
+                          key={event.id}
+                          className="flex items-center gap-1.5 text-xs text-gray-500"
+                        >
+                          <span
+                            className="w-2 h-2 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: event.color }}
+                            aria-hidden="true"
+                          />
+                          {highlight(event.title, query.trim())}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+
+    </section>
+  )
+}
+
+Search.propTypes = {
+  entries: PropTypes.objectOf(
+    PropTypes.shape({
+      note:     PropTypes.string,
+      color:    PropTypes.string,
+      category: PropTypes.string,
+    })
+  ).isRequired,
+  events: PropTypes.arrayOf(
+    PropTypes.shape({
+      id:    PropTypes.number.isRequired,
+      date:  PropTypes.string.isRequired,
+      title: PropTypes.string.isRequired,
+      color: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  categories: PropTypes.arrayOf(
+    PropTypes.shape({
+      id:    PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      color: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  onSelectDate: PropTypes.func.isRequired,
+}
+</file>
+
+<file path="src/hooks/useDiary.js">
+import { useState, useEffect } from "react"
+
+const ENTRIES_KEY    = "diary_entries"
+const EVENTS_KEY     = "diary_events"
+const CATEGORIES_KEY = "diary_categories"
+
+const DEFAULT_CATEGORIES = [
+  { id: 'legs', label: 'Legs', color: '#fca5a5' },
+  { id: 'pull', label: 'Pull', color: '#93c5fd' },
+  { id: 'push', label: 'Push', color: '#fde68a' },
+]
+
+function load(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key)
+    return raw ? JSON.parse(raw) : fallback
+  } catch {
+    return fallback
+  }
+}
+
+export function useDiary() {
+  const [entries,    setEntries]    = useState(() => load(ENTRIES_KEY,    {}))
+  const [events,     setEvents]     = useState(() => load(EVENTS_KEY,     []))
+  const [categories, setCategories] = useState(() => load(CATEGORIES_KEY, DEFAULT_CATEGORIES))
+
+  useEffect(() => {
+    localStorage.setItem(ENTRIES_KEY, JSON.stringify(entries))
+  }, [entries])
+
+  useEffect(() => {
+    localStorage.setItem(EVENTS_KEY, JSON.stringify(events))
+  }, [events])
+
+  useEffect(() => {
+    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories))
+  }, [categories])
+
+  function saveEntry(dateKey, note, color, category) {
+    setEntries(prev => ({ ...prev, [dateKey]: { note, color, category } }))
+  }
+
+  function deleteEntry(dateKey) {
+    setEntries(prev => {
+      const next = { ...prev }
+      delete next[dateKey]
+      return next
+    })
+  }
+
+  function addEvent(dateKey, title, color) {
+    setEvents(prev => [
+      ...prev,
+      { id: Date.now(), date: dateKey, title, color }
+    ])
+  }
+
+  function deleteEvent(id) {
+    setEvents(prev => prev.filter(e => e.id !== id))
+  }
+
+  function addCategory(label, color) {
+    setCategories(prev => [
+      ...prev,
+      { id: Date.now().toString(), label, color }
+    ])
+  }
+
+  function deleteCategory(id) {
+    setCategories(prev => prev.filter(c => c.id !== id))
+  }
+
+  function importData({ entries: importedEntries, events: importedEvents, categories: importedCategories }) {
+    setEntries(prev => ({ ...prev, ...importedEntries }))
+
+    setEvents(prev => {
+      const existingIds = new Set(prev.map(e => e.id))
+      const newOnes = importedEvents.filter(e => !existingIds.has(e.id))
+      return [...prev, ...newOnes]
+    })
+
+    setCategories(prev => {
+      const merged = [...prev]
+      importedCategories.forEach(cat => {
+        const idx = merged.findIndex(c => c.id === cat.id)
+        if (idx === -1) merged.push(cat)
+        else merged[idx] = cat
+      })
+      return merged
+    })
+  }
+
+  return {
+    entries, events, categories,
+    saveEntry, deleteEntry,
+    addEvent, deleteEvent,
+    addCategory, deleteCategory,
+    importData,
+  }
+}
+</file>
+
+<file path=".gitignore">
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+android/
+ios/
+</file>
+
+<file path="eslint.config.js">
+import js from '@eslint/js'
+import globals from 'globals'
+import react from 'eslint-plugin-react'
+import reactHooks from 'eslint-plugin-react-hooks'
+import reactRefresh from 'eslint-plugin-react-refresh'
+import jsxA11y from 'eslint-plugin-jsx-a11y'
+
+export default [
+  { ignores: ['dist'] },
+  {
+    files: ['**/*.{js,jsx}'],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: globals.browser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        ecmaFeatures: { jsx: true },
+        sourceType: 'module',
+      },
+    },
+    settings: { react: { version: '18.3' } },
+    plugins: {
+      react,
+      'react-hooks': reactHooks,
+      'react-refresh': reactRefresh,
+      'jsx-a11y': jsxA11y,
+    },
+    rules: {
+      ...js.configs.recommended.rules,
+      ...react.configs.recommended.rules,
+      ...react.configs['jsx-runtime'].rules,
+      ...reactHooks.configs.recommended.rules,
+      ...jsxA11y.configs.recommended.rules,
+      'react/jsx-no-target-blank': 'off',
+      'react-refresh/only-export-components': [
+        'warn',
+        { allowConstantExport: true },
+      ],
+    },
+  },
+]
+</file>
+
+<file path="package.json">
+{
+  "name": "my-diary-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.4.0",
+    "@capacitor/cli": "^8.4.0",
+    "@capacitor/core": "^8.4.0",
+    "prop-types": "^15.8.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-swipeable": "^7.0.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.13.0",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "autoprefixer": "^10.5.0",
+    "eslint": "^9.13.0",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-react-refresh": "^0.4.14",
+    "globals": "^15.11.0",
+    "postcss": "^8.5.15",
+    "tailwindcss": "^3.4.19",
+    "vite": "^5.4.10"
+  }
+}
+</file>
+
+<file path="src/App.jsx">
+import { useState } from 'react'
+import { useDiary } from './hooks/useDiary'
+import Calendar   from './components/Calendar'
+import DiaryEntry from './components/DiaryEntry'
+import History    from './components/History'
+import Search     from './components/Search'
+import Categories from './components/Categories'
+import DataBackup from './components/DataBackup'
+const TABS = [
+  { key: 'calendar',   icon: '📅', label: 'Calendar'   },
+  { key: 'history',    icon: '📋', label: 'History'    },
+  { key: 'search',     icon: '🔍', label: 'Search'     },
+  { key: 'settings',   icon: '⚙️',  label: 'Settings'   },
+]
+
+export default function App() {
+  const {
+    entries, events, categories,
+    saveEntry, deleteEntry,
+    addEvent, deleteEvent,
+    addCategory, deleteCategory,
+    importData,
+  } = useDiary()
+
+  const [selectedDate, setSelectedDate] = useState(null)
+  const [view,         setView]         = useState('calendar')
+
+  const selectedEntry = selectedDate ? entries[selectedDate] ?? null : null
+
+  function handleSelectDate(dateKey) {
+    setSelectedDate(dateKey)
+    setView('calendar')
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
+        <h1 className="text-xl font-bold text-gray-800 text-center">
+          📓 My Diary
+        </h1>
+      </header>
+
+      {/* Main */}
+      <main className="flex-1 flex flex-col p-4 max-w-lg mx-auto w-full pb-20">
+        {view === 'calendar' && (
+          <Calendar
+            entries={entries}
+            events={events}
+            onSelectDate={setSelectedDate}
+          />
+        )}
+        {view === 'history' && (
+          <History
+            entries={entries}
+            categories={categories}
+            onSelectDate={handleSelectDate}
+          />
+        )}
+        {view === 'search' && (
+          <Search
+            entries={entries}
+            events={events}
+            categories={categories}
+            onSelectDate={handleSelectDate}
+          />
+        )}
+        {view === 'settings' && (
+          <div className="flex flex-col gap-6">
+            <Categories
+              categories={categories}
+              entries={entries}
+              events={events}
+              onAdd={addCategory}
+              onDelete={deleteCategory}
+            />
+            <DataBackup
+              entries={entries}
+              events={events}
+              categories={categories}
+              onImport={importData}
+            />
+          </div>
+        )}
+      </main>
+
+      {/* Bottom navigation */}
+      <nav
+        aria-label="Main navigation"
+        className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex"
+      >
+        {TABS.map(tab => (
+          <button
+            key={tab.key}
+            onClick={() => setView(tab.key)}
+            aria-current={view === tab.key ? 'page' : undefined}
+            className={[
+              'flex-1 flex flex-col items-center py-3 text-xs font-medium transition',
+              view === tab.key ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700',
+            ].join(' ')}
+          >
+            <span className="text-xl mb-0.5" aria-hidden="true">{tab.icon}</span>
+            {tab.label}
+          </button>
+        ))}
+      </nav>
+
+      {/* Diary modal */}
+      {selectedDate && (
+        <DiaryEntry
+          dateKey={selectedDate}
+          entry={selectedEntry}
+          entries={entries}
+          events={events}
+          categories={categories}
+          onSave={saveEntry}
+          onDelete={deleteEntry}
+          onAddEvent={addEvent}
+          onDeleteEvent={deleteEvent}
+          onClose={() => setSelectedDate(null)}
+        />
+      )}
+
+    </div>
+  )
+}
+</file>
+
+<file path=".github/workflows/build-apk.yml">
+name: Build APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build web app
+        run: pnpm build
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Add Android platform
+        run: npx cap add android
+
+      - name: Sync web assets
+        run: npx cap sync android
+
+      - name: Make gradlew executable
+        run: chmod +x android/gradlew
+
+      - name: Build release APK
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Decode signing keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > release.keystore
+
+      - name: Sign APK
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          BUILD_TOOLS=$(ls $ANDROID_HOME/build-tools | sort -V | tail -n 1)
+          ZIPALIGN="$ANDROID_HOME/build-tools/$BUILD_TOOLS/zipalign"
+          APKSIGNER="$ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner"
+
+          "$ZIPALIGN" -v 4 \
+            android/app/build/outputs/apk/release/app-release-unsigned.apk \
+            app-release-aligned.apk
+
+          "$APKSIGNER" sign \
+            --ks release.keystore \
+            --ks-pass pass:"$KEYSTORE_PASSWORD" \
+            --key-pass pass:"$KEY_PASSWORD" \
+            --ks-key-alias "$KEY_ALIAS" \
+            --out app-release-signed.apk \
+            app-release-aligned.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: my-diary-release
+          path: app-release-signed.apk
+          retention-days: 30
+</file>
+
+</files>
