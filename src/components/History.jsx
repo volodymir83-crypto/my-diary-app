@@ -35,9 +35,9 @@ export default function History({ entries, categories, onSelectDate }) {
             aria-selected={categoryId === c.id}
             onClick={() => setCategoryId(c.id)}
             className={[
-              'flex-1 py-2 rounded-xl text-sm font-medium transition min-w-[4rem]',
+              'flex-1 py-2 rounded-xl text-sm font-medium shadow-md transition min-w-[4rem]',
               categoryId === c.id
-                ? 'ring-2 ring-blue-500 shadow-sm'
+                ? 'ring-1 ring-blue-500 '
                 : 'bg-gray-100 hover:bg-gray-200 text-gray-600',
             ].join(' ')}
             style={categoryId === c.id ? { backgroundColor: c.color } : {}}
@@ -54,7 +54,7 @@ export default function History({ entries, categories, onSelectDate }) {
 
       {/* Empty state */}
       {filtered.length === 0 ? (
-        <div className="text-center py-12 text-gray-400">
+        <div className="text-center py-12 text-gray-600">
           <p className="text-4xl mb-2" aria-hidden="true">📭</p>
           <p className="text-sm">No {cat?.label} entries yet</p>
         </div>
@@ -82,9 +82,9 @@ export default function History({ entries, categories, onSelectDate }) {
                       {formatDate(dateKey)}
                     </time>
                     {daysSincePrevious !== null && (
-                      <span className="text-xs text-gray-400" aria-hidden="true">
-                        · {daysSincePrevious} {daysSincePrevious === 1 ? 'day' : 'days'} since last
-                      </span>
+                      <span className="text-xs text-gray-600" aria-hidden="true">
+              · {daysSincePrevious} {daysSincePrevious === 1 ? 'day' : 'days'} since last
+            </span>
                     )}
                   </div>
                   {entry.note ? (
@@ -97,7 +97,7 @@ export default function History({ entries, categories, onSelectDate }) {
                       )}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-400 italic ml-5">No notes</p>
+                    <p className="text-sm text-gray-600 italic ml-5">No notes</p>
                   )}
                 </button>
               </li>

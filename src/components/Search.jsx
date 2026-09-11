@@ -77,7 +77,7 @@ export default function Search({ entries, events, categories, onSelectDate }) {
           <button
             onClick={() => setQuery('')}
             aria-label="Clear search"
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800 transition"
           >
             ✕
           </button>
@@ -93,14 +93,14 @@ export default function Search({ entries, events, categories, onSelectDate }) {
 
       {/* Empty states */}
       {!trimmed && (
-        <div className="text-center py-12 text-gray-400">
+        <div className="text-center py-12 text-gray-600">
           <p className="text-4xl mb-2" aria-hidden="true">🔍</p>
           <p className="text-sm">Start typing to search your diary</p>
         </div>
       )}
 
       {trimmed && results.length === 0 && (
-        <div className="text-center py-12 text-gray-400">
+        <div className="text-center py-12 text-gray-600">
           <p className="text-4xl mb-2" aria-hidden="true">📭</p>
           <p className="text-sm">No results found</p>
         </div>
@@ -129,11 +129,11 @@ export default function Search({ entries, events, categories, onSelectDate }) {
                         aria-hidden="true"
                       />
                     )}
-                    <time dateTime={dateKey} className="text-xs font-medium text-gray-500">
+                    <time dateTime={dateKey} className="text-xs font-medium text-gray-600">
                       {formatDate(dateKey)}
                     </time>
                     {cat && (
-                      <span className="text-xs text-gray-400">· {cat.label}</span>
+                      <span className="text-xs text-gray-600">· {cat.label}</span>
                     )}
                   </div>
 

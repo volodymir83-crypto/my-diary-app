@@ -104,7 +104,7 @@ export default function DataBackup({ entries, events, categories, onImport }) {
         </div>
         <button
           onClick={handleExport}
-          className="w-full bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-medium rounded-xl py-2.5 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          className="w-full bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-white font-medium rounded-xl py-2.5 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-700"
         >
           Download backup file
         </button>
@@ -168,7 +168,7 @@ export default function DataBackup({ entries, events, categories, onImport }) {
               </button>
               <button
                 onClick={confirmImport}
-                className="flex-1 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-medium rounded-xl py-2.5 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                className="flex-1 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-white font-medium rounded-xl py-2.5 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-700"
               >
                 Restore
               </button>

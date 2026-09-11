@@ -18,12 +18,13 @@ export default function DayCell({ day, dateKey, isToday, entryColor, events, onC
       className={[
         "relative flex flex-col items-center justify-start",
         "w-full aspect-square rounded-xl pt-1 pb-1",
+        "bg-white shadow-md border border-gray-100",
         "text-sm font-medium transition",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
         "active:scale-95",
         isToday
           ? "ring-2 ring-blue-500 text-blue-700 font-bold"
-          : "text-gray-800 hover:bg-gray-100",
+          : "text-gray-800 hover:bg-gray-50",
       ].join(" ")}
       style={entryColor ? { backgroundColor: entryColor } : {}}
     >

@@ -199,7 +199,7 @@ export default function DiaryEntry({
           <div className="flex gap-2">
             <button
               onClick={handleSave}
-              className="flex-1 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-medium rounded-xl py-2.5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              className="flex-1 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-white font-medium rounded-xl py-2.5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-700"
             >
               Save
             </button>
