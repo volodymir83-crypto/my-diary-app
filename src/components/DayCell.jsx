@@ -17,8 +17,8 @@ export default function DayCell({ day, dateKey, isToday, entryColor, events, onC
       aria-label={ariaLabel}
       className={[
         "relative flex flex-col items-center justify-start",
-        "w-full aspect-square rounded-xl pt-1 pb-1",
-        "bg-white shadow-md border border-gray-100",
+        "w-full aspect-square rounded-lg pt-1 pb-1",
+        "bg-white shadow-lg",
         "text-sm font-medium transition",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
         "active:scale-95",

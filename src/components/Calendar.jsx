@@ -1,6 +1,5 @@
-import { useState } from "react"
+import { useState, useRef, useLayoutEffect, useEffect, useMemo, useCallback } from "react"
 import DayCell from "./DayCell"
-import { useSwipeable } from "react-swipeable"
 import PropTypes from 'prop-types'
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
@@ -14,102 +13,196 @@ function getFirstDayOfMonth(year, month) {
   return (day + 6) % 7
 }
 
-export default function Calendar({ entries, events, onSelectDate }) {
-  const today = new Date()
-  const [year,  setYear]  = useState(today.getFullYear())
-  const [month, setMonth] = useState(today.getMonth())
-  const [direction, setDirection] = useState('fade')
-  const isCurrentMonth = year === today.getFullYear() && month === today.getMonth()
-  const isFuture = year > today.getFullYear() ||
-    (year === today.getFullYear() && month > today.getMonth())
-  const daysInMonth  = getDaysInMonth(year, month)
-  const firstDaySlot = getFirstDayOfMonth(year, month)
+function getNextMonth(year, month) {
+  return month === 11 ? { year: year + 1, month: 0 } : { year, month: month + 1 }
+}
 
-  const monthLabel = new Date(year, month).toLocaleString("default", {
+function getPrevMonth(year, month) {
+  return month === 0 ? { year: year - 1, month: 11 } : { year, month: month - 1 }
+}
+
+export default function Calendar({ entries, events, onSelectDate }) {
+  const today = useMemo(() => new Date(), [])
+  const [year, setYear] = useState(today.getFullYear())
+  const [month, setMonth] = useState(today.getMonth())
+
+  // 0: Prev month visible, 1: Current month, 2: Next month visible
+  const [activeIndex, setActiveIndex] = useState(1)
+
+  const scrollContainerRef = useRef(null)
+  const isUpdatingRef = useRef(false)
+  const scrollTimeoutRef = useRef(null)
+
+  const prevDate = useMemo(() => getPrevMonth(year, month), [year, month])
+  const nextDate = useMemo(() => getNextMonth(year, month), [year, month])
+
+  // Real-time display date: updates immediately as soon as swipe crosses 50%
+  const displayDate =
+    activeIndex === 0 ? prevDate :
+    activeIndex === 2 ? nextDate :
+    { year, month }
+
+  const isCurrentMonth = displayDate.year === today.getFullYear() && displayDate.month === today.getMonth()
+  const isFuture = displayDate.year > today.getFullYear() ||
+    (displayDate.year === today.getFullYear() && displayDate.month > today.getMonth())
+
+  const monthLabel = new Date(displayDate.year, displayDate.month).toLocaleString("default", {
     month: "long", year: "numeric"
   })
 
-  function prevMonth() {
-    setDirection('prev')
-    if (month === 0) { setMonth(11); setYear(y => y - 1) }
-    else setMonth(m => m - 1)
+  // Center scroll container on Panel 1 (Current Month)
+  useLayoutEffect(() => {
+    const el = scrollContainerRef.current
+    if (!el) return
+    isUpdatingRef.current = true
+    el.scrollLeft = el.offsetWidth
+    requestAnimationFrame(() => {
+      isUpdatingRef.current = false
+    })
+  }, [year, month])
+
+  const commitScroll = useCallback(() => {
+    const el = scrollContainerRef.current
+    if (!el) return
+    const width = el.offsetWidth
+    if (!width) return
+    const finalIndex = Math.round(el.scrollLeft / width)
+
+    if (finalIndex === 0) {
+      isUpdatingRef.current = true
+      setYear(prevDate.year)
+      setMonth(prevDate.month)
+      setActiveIndex(1)
+    } else if (finalIndex === 2) {
+      isUpdatingRef.current = true
+      setYear(nextDate.year)
+      setMonth(nextDate.month)
+      setActiveIndex(1)
+    } else {
+      setActiveIndex(1)
+    }
+  }, [prevDate, nextDate])
+
+  // Native Android 'scrollend' event for instant zero-delay snap detection
+  useEffect(() => {
+    const el = scrollContainerRef.current
+    if (!el) return
+
+    function onScrollEnd() {
+      if (isUpdatingRef.current) return
+      commitScroll()
+    }
+
+    el.addEventListener("scrollend", onScrollEnd)
+    return () => {
+      el.removeEventListener("scrollend", onScrollEnd)
+    }
+  }, [commitScroll])
+
+  function handleScroll() {
+    if (isUpdatingRef.current) return
+    const el = scrollContainerRef.current
+    if (!el) return
+
+    const width = el.offsetWidth
+    if (!width) return
+
+    // 1. Live Header Sync: calculate dominant month in real-time
+    const currentPosition = el.scrollLeft / width
+    const targetIndex = Math.min(2, Math.max(0, Math.round(currentPosition)))
+    if (targetIndex !== activeIndex) {
+      setActiveIndex(targetIndex)
+    }
+
+    // 2. Fallback settle timer for WebViews lacking native 'scrollend'
+    clearTimeout(scrollTimeoutRef.current)
+    scrollTimeoutRef.current = setTimeout(() => {
+      if (!isUpdatingRef.current) {
+        commitScroll()
+      }
+    }, 80)
   }
 
-  function nextMonth() {
-    setDirection('next')
-    if (month === 11) { setMonth(0); setYear(y => y + 1) }
-    else setMonth(m => m + 1)
+  function scrollToPrev() {
+    const el = scrollContainerRef.current
+    if (!el) return
+    el.scrollTo({ left: 0, behavior: "smooth" })
+  }
+
+  function scrollToNext() {
+    const el = scrollContainerRef.current
+    if (!el) return
+    el.scrollTo({ left: el.offsetWidth * 2, behavior: "smooth" })
   }
 
   function goToToday() {
-    setDirection('fade')
+    isUpdatingRef.current = true
+    setActiveIndex(1)
     setYear(today.getFullYear())
     setMonth(today.getMonth())
   }
 
-  const swipeHandlers = useSwipeable({
-    onSwipedLeft:  () => nextMonth(),
-    onSwipedRight: () => prevMonth(),
-    preventScrollOnSwipe: false,
-    trackMouse: false,
-  })
+  function renderMonthGrid(y, m) {
+    const daysInMonth = getDaysInMonth(y, m)
+    const firstDaySlot = getFirstDayOfMonth(y, m)
+    const cells = []
 
-  const cells = []
+    for (let i = 0; i < firstDaySlot; i++) {
+      cells.push(<div key={`empty-${y}-${m}-${i}`} />)
+    }
 
-  // empty slots before day 1
-  for (let i = 0; i < firstDaySlot; i++) {
-    cells.push(<div key={`empty-${i}`} />)
-  }
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateKey = `${y}-${String(m + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+      const isToday =
+        day === today.getDate() &&
+        m === today.getMonth() &&
+        y === today.getFullYear()
 
-  // actual days
-  for (let day = 1; day <= daysInMonth; day++) {
-    const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
-    const isToday =
-      day === today.getDate() &&
-      month === today.getMonth() &&
-      year === today.getFullYear()
+      const dayEvents = events.filter(e => e.date === dateKey)
+      const entryColor = entries[dateKey]?.color || null
 
-    const dayEvents  = events.filter(e => e.date === dateKey)
-    const entryColor = entries[dateKey]?.color || null
+      cells.push(
+        <DayCell
+          key={dateKey}
+          day={day}
+          dateKey={dateKey}
+          isToday={isToday}
+          entryColor={entryColor}
+          events={dayEvents}
+          onClick={() => onSelectDate(dateKey)}
+        />
+      )
+    }
 
-    cells.push(
-      <DayCell
-        key={dateKey}
-        day={day}
-        dateKey={dateKey}
-        isToday={isToday}
-        entryColor={entryColor}
-        events={dayEvents}
-        onClick={() => onSelectDate(dateKey)}
-      />
+    return (
+      <div className="grid grid-cols-7 gap-1 w-full">
+        {cells}
+      </div>
     )
   }
 
   return (
-    <section
-      {...swipeHandlers}
-      aria-label="Calendar"
-      className="flex-1 flex flex-col w-full"
-    >
+    <section aria-label="Calendar" className="flex-1 flex flex-col w-full">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <button
-          onClick={prevMonth}
+          onClick={scrollToPrev}
           aria-label="Previous month"
-          className="p-2 rounded-full hover:bg-gray-200 active:bg-gray-300 transition"
+          className="p-2 rounded-full hover:bg-gray-200 active:bg-gray-300 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
         >
           ◀
         </button>
         <h2 className="text-lg font-semibold">{monthLabel}</h2>
         <button
-          onClick={nextMonth}
+          onClick={scrollToNext}
           aria-label="Next month"
-          className="p-2 rounded-full hover:bg-gray-200 active:bg-gray-300 transition"
+          className="p-2 rounded-full hover:bg-gray-200 active:bg-gray-300 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
         >
           ▶
         </button>
       </div>
-{/* Today button */}
+
+      {/* Today button */}
       {!isCurrentMonth && (
         <div className="flex justify-center mb-2 -mt-2">
           <button
@@ -126,11 +219,11 @@ export default function Calendar({ entries, events, onSelectDate }) {
                 Today{' '}<span className="text-3xl align-baseline" aria-hidden="true">↪</span>
               </>
             )}
-            </button>
+          </button>
         </div>
       )}
 
-      {/* Day labels */}
+      {/* Day labels (fixed at top) */}
       <div className="grid grid-cols-7 mb-1">
         {DAYS.map(d => (
           <div
@@ -143,17 +236,31 @@ export default function Calendar({ entries, events, onSelectDate }) {
         ))}
       </div>
 
-      {/* Day grid */}
-      <div className="overflow-hidden -m-2 p-2">
-        <div 
-          key={`${year}-${month}`}
-          className={`grid grid-cols-7 gap-1 ${
-            direction === 'next' ? 'animate-slide-in-right' : 
-            direction === 'prev' ? 'animate-slide-in-left' : 
-            'animate-fade-in'
-          }`}
+      {/* Full-height Touch Drag Track with CSS Scroll Snap */}
+      <div className="-m-2 p-2 flex-1 flex flex-col overflow-hidden">
+        <div
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar w-full flex-1"
+          style={{ WebkitOverflowScrolling: "touch" }}
         >
-          {cells}
+          {/* Panel 0: Previous Month */}
+          <div className="w-full flex-shrink-0 snap-start px-0.5 h-full flex flex-col">
+            {renderMonthGrid(prevDate.year, prevDate.month)}
+            <div className="flex-1 min-h-[5rem]" aria-hidden="true" />
+          </div>
+
+          {/* Panel 1: Current Month */}
+          <div className="w-full flex-shrink-0 snap-start px-0.5 h-full flex flex-col">
+            {renderMonthGrid(year, month)}
+            <div className="flex-1 min-h-[5rem]" aria-hidden="true" />
+          </div>
+
+          {/* Panel 2: Next Month */}
+          <div className="w-full flex-shrink-0 snap-start px-0.5 h-full flex flex-col">
+            {renderMonthGrid(nextDate.year, nextDate.month)}
+            <div className="flex-1 min-h-[5rem]" aria-hidden="true" />
+          </div>
         </div>
       </div>
     </section>
@@ -163,8 +270,8 @@ export default function Calendar({ entries, events, onSelectDate }) {
 Calendar.propTypes = {
   entries: PropTypes.objectOf(
     PropTypes.shape({
-      note:     PropTypes.string,
-      color:    PropTypes.string,
+      note: PropTypes.string,
+      color: PropTypes.string,
       category: PropTypes.string,
     })
   ).isRequired,
