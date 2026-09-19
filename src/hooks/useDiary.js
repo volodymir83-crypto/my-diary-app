@@ -1,13 +1,15 @@
+// src/hooks/useDiary.js
 import { useState, useEffect } from "react"
 
 const ENTRIES_KEY    = "diary_entries"
 const EVENTS_KEY     = "diary_events"
 const CATEGORIES_KEY = "diary_categories"
 
+// M3 Harmonized Content Roles as default categories
 const DEFAULT_CATEGORIES = [
-  { id: 'legs', label: 'Legs', color: '#fca5a5' },
-  { id: 'pull', label: 'Pull', color: '#93c5fd' },
-  { id: 'push', label: 'Push', color: '#fde68a' },
+  { id: 'legs', label: 'Legs', color: 'coral' },
+  { id: 'pull', label: 'Pull', color: 'indigo' },
+  { id: 'push', label: 'Push', color: 'amber' },
 ]
 
 function load(key, fallback) {

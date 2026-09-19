@@ -1,3 +1,4 @@
+// src/components/DataBackup.jsx
 import { useState, useRef } from 'react'
 import PropTypes from 'prop-types'
 
@@ -39,8 +40,7 @@ export default function DataBackup({ entries, events, categories, onImport }) {
       document.body.removeChild(link)
       URL.revokeObjectURL(url)
     } catch {
-      // Download may not trigger on every device — the text box below
-      // still lets you copy the backup manually.
+      // Manual copy fallback remains available in the textarea below
     }
   }
 
@@ -60,7 +60,7 @@ export default function DataBackup({ entries, events, categories, onImport }) {
           Array.isArray(data.categories)
 
         if (!looksValid) {
-          setImportError("This file doesn't look like a diary backup.")
+          setImportError("This file does not match a valid My Diary backup format.")
           return
         }
 
@@ -73,7 +73,7 @@ export default function DataBackup({ entries, events, categories, onImport }) {
           },
         })
       } catch {
-        setImportError("Couldn't read that file — make sure it's a valid backup .json file.")
+        setImportError("Unable to parse file. Please select a valid .json backup file.")
       }
     }
     reader.readAsText(file)
@@ -86,32 +86,34 @@ export default function DataBackup({ entries, events, categories, onImport }) {
   }
 
   return (
-    <section aria-label="Backup and restore" className="flex flex-col gap-4">
+    <section aria-label="Backup and restore" className="flex flex-col gap-6">
       <div>
-        <h2 className="text-base font-semibold text-gray-800">Backup &amp; Restore</h2>
-        <p className="text-xs text-gray-500 mt-1">
-          Your notes only live on this device. Export a backup before reinstalling the app, or anytime after making important entries.
+        <h2 className="text-base font-bold text-[#1E1B4B]">Backup &amp; Restore</h2>
+        <p className="text-xs text-[#45464F] mt-0.5">
+          Your diary entries reside solely on this device. Export regular backups to prevent accidental data loss.
         </p>
       </div>
 
-      {/* Export */}
-      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex flex-col gap-3">
+      {/* Export Card */}
+      <div className="bg-[#FAF8FF] rounded-3xl p-5 shadow-xs border border-black/5 flex flex-col gap-4">
         <div>
-          <h3 className="text-sm font-medium text-gray-700">Export</h3>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <h3 className="text-sm font-bold text-[#1E1B4B]">Export Data</h3>
+          <p className="text-xs font-semibold text-[#45464F] mt-0.5">
             {entryCount} {entryCount === 1 ? 'entry' : 'entries'} · {eventCount} {eventCount === 1 ? 'event' : 'events'} · {categoryCount} {categoryCount === 1 ? 'category' : 'categories'}
           </p>
         </div>
+
         <button
           onClick={handleExport}
-          className="w-full bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-white font-medium rounded-xl py-2.5 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-700"
+          className="w-full h-12 bg-[#4F46E5] hover:bg-[#4338CA] active:scale-98 text-white font-bold rounded-full text-sm shadow-sm transition flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#4F46E5]"
         >
-          Download backup file
+          Download Backup File
         </button>
+
         {exportedText && (
-          <div>
-            <label htmlFor="export-text" className="block text-xs text-gray-500 mb-1">
-              If the download didn&rsquo;t save anywhere you can find, tap the box below to select all, then copy it manually:
+          <div className="flex flex-col gap-1.5 pt-1">
+            <label htmlFor="export-text" className="text-xs font-bold text-[#45464F]">
+              Direct JSON Backup (tap to select all and copy):
             </label>
             <textarea
               id="export-text"
@@ -119,58 +121,68 @@ export default function DataBackup({ entries, events, categories, onImport }) {
               value={exportedText}
               rows={4}
               onFocus={e => e.target.select()}
-              className="w-full rounded-xl border border-gray-300 p-2.5 text-xs font-mono resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-2xl border border-[#767680]/30 bg-white p-3 text-xs font-mono text-[#1E1B4B] resize-none focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 shadow-xs"
             />
           </div>
         )}
       </div>
 
-      {/* Import */}
-      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex flex-col gap-3">
+      {/* Import Card */}
+      <div className="bg-[#FAF8FF] rounded-3xl p-5 shadow-xs border border-black/5 flex flex-col gap-4">
         <div>
-          <h3 className="text-sm font-medium text-gray-700">Restore</h3>
-          <p className="text-xs text-gray-500 mt-0.5">
-            Choose a previously exported backup file. Entries on the same date will be replaced by the backup&rsquo;s version.
+          <h3 className="text-sm font-bold text-[#1E1B4B]">Restore Data</h3>
+          <p className="text-xs text-[#45464F] mt-0.5">
+            Select a previous JSON backup to restore. Existing dates with same-day notes will be updated.
           </p>
         </div>
+
         <input
           ref={fileInputRef}
           type="file"
           accept="application/json,.json"
           onChange={handleFileSelected}
           aria-label="Choose backup file to restore"
-          className="text-xs text-gray-600 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-gray-100 file:text-gray-700 file:text-xs file:font-medium hover:file:bg-gray-200"
+          className="text-xs text-[#45464F] file:mr-3 file:h-11 file:px-5 file:rounded-full file:border-0 file:bg-[#EEF2FF] file:text-[#1E1B4B] file:text-xs file:font-bold hover:file:bg-[#C7D2FE] file:transition file:cursor-pointer"
         />
+
         {importError && (
-          <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{importError}</p>
+          <div
+            className="bg-[#FFDAD6] border border-[#BA1A1A]/20 text-[#410002] px-3.5 py-2.5 rounded-2xl text-xs font-semibold flex items-center gap-2"
+            role="alert"
+          >
+            <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+            <span>{importError}</span>
+          </div>
         )}
       </div>
 
-      {/* Confirm import dialog */}
+      {/* M3 Restore Confirmation Modal Sheet */}
       {pendingImport && (
         <div
           role="dialog"
           aria-modal="true"
           aria-label="Confirm restore"
-          className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center z-50 p-2 sm:p-4"
         >
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl p-4 flex flex-col gap-4">
-            <h3 className="text-base font-semibold text-gray-800">Restore this backup?</h3>
-            <p className="text-sm text-gray-600">
-              This file has {pendingImport.summary.entries} {pendingImport.summary.entries === 1 ? 'entry' : 'entries'}, {pendingImport.summary.events} {pendingImport.summary.events === 1 ? 'event' : 'events'}, and {pendingImport.summary.categories} {pendingImport.summary.categories === 1 ? 'category' : 'categories'}. It will be merged into what you have now — any entry on the same date will be replaced by the backup&rsquo;s version.
+          <div className="bg-[#FAF8FF] rounded-3xl w-full max-w-sm shadow-2xl p-5 border border-black/5 flex flex-col gap-4">
+            <h3 className="text-base font-bold text-[#1E1B4B]">Restore Backup?</h3>
+            <p className="text-xs text-[#45464F] leading-relaxed">
+              This backup file contains <strong className="text-[#1E1B4B]">{pendingImport.summary.entries}</strong> entries, <strong className="text-[#1E1B4B]">{pendingImport.summary.events}</strong> events, and <strong className="text-[#1E1B4B]">{pendingImport.summary.categories}</strong> categories. Existing data on identical dates will be overwritten.
             </p>
-            <div className="flex gap-2">
+            <div className="flex gap-2.5 pt-1">
               <button
                 onClick={() => setPendingImport(null)}
-                className="flex-1 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-medium rounded-xl py-2.5 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                className="flex-1 h-12 bg-[#EEF2FF] hover:bg-[#C7D2FE] active:scale-98 text-[#1E1B4B] font-bold rounded-full text-xs transition flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B]"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmImport}
-                className="flex-1 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-white font-medium rounded-xl py-2.5 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-700"
+                className="flex-1 h-12 bg-[#4F46E5] hover:bg-[#4338CA] active:scale-98 text-white font-bold rounded-full text-xs shadow-sm transition flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#4F46E5]"
               >
-                Restore
+                Confirm Restore
               </button>
             </div>
           </div>

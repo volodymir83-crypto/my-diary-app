@@ -1,3 +1,4 @@
+// src/components/Calendar.jsx
 import { useState, useRef, useLayoutEffect, useEffect, useMemo, useCallback } from "react"
 import DayCell from "./DayCell"
 import PropTypes from 'prop-types'
@@ -26,7 +27,7 @@ export default function Calendar({ entries, events, onSelectDate }) {
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth())
 
-  // 0: Prev month visible, 1: Current month, 2: Next month visible
+  // 0: Prev month, 1: Current month, 2: Next month
   const [activeIndex, setActiveIndex] = useState(1)
 
   const scrollContainerRef = useRef(null)
@@ -36,15 +37,13 @@ export default function Calendar({ entries, events, onSelectDate }) {
   const prevDate = useMemo(() => getPrevMonth(year, month), [year, month])
   const nextDate = useMemo(() => getNextMonth(year, month), [year, month])
 
-  // Real-time display date: updates immediately as soon as swipe crosses 50%
+  // Real-time display date synced with swipe gesture
   const displayDate =
     activeIndex === 0 ? prevDate :
     activeIndex === 2 ? nextDate :
     { year, month }
 
   const isCurrentMonth = displayDate.year === today.getFullYear() && displayDate.month === today.getMonth()
-  const isFuture = displayDate.year > today.getFullYear() ||
-    (displayDate.year === today.getFullYear() && displayDate.month > today.getMonth())
 
   const monthLabel = new Date(displayDate.year, displayDate.month).toLocaleString("default", {
     month: "long", year: "numeric"
@@ -83,7 +82,7 @@ export default function Calendar({ entries, events, onSelectDate }) {
     }
   }, [prevDate, nextDate])
 
-  // Native Android 'scrollend' event for instant zero-delay snap detection
+  // Native Android 'scrollend' event for zero-delay snap detection
   useEffect(() => {
     const el = scrollContainerRef.current
     if (!el) return
@@ -107,14 +106,12 @@ export default function Calendar({ entries, events, onSelectDate }) {
     const width = el.offsetWidth
     if (!width) return
 
-    // 1. Live Header Sync: calculate dominant month in real-time
     const currentPosition = el.scrollLeft / width
     const targetIndex = Math.min(2, Math.max(0, Math.round(currentPosition)))
     if (targetIndex !== activeIndex) {
       setActiveIndex(targetIndex)
     }
 
-    // 2. Fallback settle timer for WebViews lacking native 'scrollend'
     clearTimeout(scrollTimeoutRef.current)
     scrollTimeoutRef.current = setTimeout(() => {
       if (!isUpdatingRef.current) {
@@ -175,7 +172,7 @@ export default function Calendar({ entries, events, onSelectDate }) {
     }
 
     return (
-      <div className="grid grid-cols-7 gap-1 w-full">
+      <div className="grid grid-cols-7 gap-1.5 w-full">
         {cells}
       </div>
     )
@@ -183,52 +180,35 @@ export default function Calendar({ entries, events, onSelectDate }) {
 
   return (
     <section aria-label="Calendar" className="flex-1 flex flex-col w-full">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      {/* Month Header Bar */}
+      <div className="flex items-center justify-between mb-3 px-1">
         <button
           onClick={scrollToPrev}
           aria-label="Previous month"
-          className="p-2 rounded-full hover:bg-gray-200 active:bg-gray-300 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          className="w-12 h-12 flex items-center justify-center rounded-full text-[#1E1B4B] hover:bg-black/5 active:bg-black/10 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B]"
         >
-          ◀
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+          </svg>
         </button>
-        <h2 className="text-lg font-semibold">{monthLabel}</h2>
+        <h2 className="text-lg font-bold text-[#1E1B4B] tracking-tight select-none">{monthLabel}</h2>
         <button
           onClick={scrollToNext}
           aria-label="Next month"
-          className="p-2 rounded-full hover:bg-gray-200 active:bg-gray-300 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          className="w-12 h-12 flex items-center justify-center rounded-full text-[#1E1B4B] hover:bg-black/5 active:bg-black/10 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B]"
         >
-          ▶
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+          </svg>
         </button>
       </div>
 
-      {/* Today button */}
-      {!isCurrentMonth && (
-        <div className="flex justify-center mb-2 -mt-2">
-          <button
-            onClick={goToToday}
-            aria-label="Go to current month"
-            className="text-base font-medium text-blue-600 hover:text-blue-700 px-4 py-2 rounded-full hover:bg-blue-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-          >
-            {isFuture ? (
-              <>
-                <span className="text-3xl align-baseline" aria-hidden="true">↩</span>{' '}Today
-              </>
-            ) : (
-              <>
-                Today{' '}<span className="text-3xl align-baseline" aria-hidden="true">↪</span>
-              </>
-            )}
-          </button>
-        </div>
-      )}
-
-      {/* Day labels (fixed at top) */}
-      <div className="grid grid-cols-7 mb-1">
+      {/* Weekday headers — WCAG AAA contrast (#1E1B4B on #A5B4FC) */}
+      <div className="grid grid-cols-7 mb-1.5">
         {DAYS.map(d => (
           <div
             key={d}
-            className="text-center text-xs font-medium text-gray-500 py-1"
+            className="text-center text-xs font-bold text-[#1E1B4B] py-1 select-none"
             aria-hidden="true"
           >
             {d}
@@ -236,7 +216,7 @@ export default function Calendar({ entries, events, onSelectDate }) {
         ))}
       </div>
 
-      {/* Full-height Touch Drag Track with CSS Scroll Snap */}
+      {/* Horizontal Swipeable Track with CSS Scroll Snap */}
       <div className="-m-2 p-2 flex-1 flex flex-col overflow-hidden">
         <div
           ref={scrollContainerRef}
@@ -263,6 +243,36 @@ export default function Calendar({ entries, events, onSelectDate }) {
           </div>
         </div>
       </div>
+
+      {/* M3 Tonal FAB for "Today" (Luminous Frost #EEF2FF + Deep Midnight #1E1B4B) */}
+      <div className="fixed bottom-24 left-0 right-0 max-w-lg mx-auto px-4 pointer-events-none flex justify-end z-20">
+        <button
+          onClick={goToToday}
+          aria-label="Jump back to current month"
+          tabIndex={isCurrentMonth ? -1 : 0}
+          className={`pointer-events-auto flex items-center h-12 px-5 rounded-2xl bg-[#EEF2FF] text-[#1E1B4B] hover:bg-white active:scale-95 border border-black/10 font-semibold text-xs tracking-wide shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B] ${
+            isCurrentMonth
+              ? "opacity-0 translate-y-3 pointer-events-none"
+              : "opacity-100 translate-y-0"
+          }`}
+        >
+          <svg
+            className="w-4 h-4 mr-2 flex-shrink-0 text-[#1E1B4B]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2.2}
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+          <span>Today</span>
+        </button>
+      </div>
     </section>
   )
 }
@@ -270,15 +280,15 @@ export default function Calendar({ entries, events, onSelectDate }) {
 Calendar.propTypes = {
   entries: PropTypes.objectOf(
     PropTypes.shape({
-      note: PropTypes.string,
-      color: PropTypes.string,
+      note:     PropTypes.string,
+      color:    PropTypes.string,
       category: PropTypes.string,
     })
   ).isRequired,
   events: PropTypes.arrayOf(
     PropTypes.shape({
-      id: PropTypes.number.isRequired,
-      date: PropTypes.string.isRequired,
+      id:    PropTypes.number.isRequired,
+      date:  PropTypes.string.isRequired,
       title: PropTypes.string.isRequired,
       color: PropTypes.string.isRequired,
     })

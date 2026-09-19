@@ -1,13 +1,16 @@
+// src/components/DayCell.jsx
 import PropTypes from 'prop-types'
+import { getColorToken } from '../utils/m3Palette'
 
 export default function DayCell({ day, dateKey, isToday, entryColor, events, onClick }) {
-  const hasNote   = Boolean(entryColor)
-  const hasEvents = events.length > 0
+  const colorToken = getColorToken(entryColor)
+  const hasNote    = Boolean(entryColor)
+  const hasEvents  = events.length > 0
 
   const ariaLabel = [
     `${dateKey}`,
     isToday ? "today" : "",
-    hasNote ? "has diary entry" : "",
+    hasNote ? `has diary entry (${colorToken?.label || 'highlighted'})` : "",
     hasEvents ? `${events.length} event(s)` : "",
   ].filter(Boolean).join(", ")
 
@@ -17,32 +20,45 @@ export default function DayCell({ day, dateKey, isToday, entryColor, events, onC
       aria-label={ariaLabel}
       className={[
         "relative flex flex-col items-center justify-start",
-        "w-full aspect-square rounded-lg pt-1 pb-1",
-        "bg-white shadow-lg",
-        "text-sm font-medium transition",
-        "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
-        "active:scale-95",
+        "w-full aspect-square rounded-xl pt-1.5 pb-1",
+        "transition-all duration-150",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B] focus-visible:z-10",
+        "active:scale-95 shadow-sm",
+        // Default Luminous Frost cell (#EEF2FF) with Deep Midnight text (#1E1B4B)
+        colorToken
+          ? "border border-black/10"
+          : "bg-[#EEF2FF] text-[#1E1B4B] hover:bg-white border border-white/60",
         isToday
-          ? "ring-2 ring-blue-500 text-blue-700 font-bold"
-          : "text-gray-800 hover:bg-gray-50",
+          ? "ring-2 ring-[#1E1B4B] font-bold"
+          : "font-medium",
       ].join(" ")}
-      style={entryColor ? { backgroundColor: entryColor } : {}}
+      style={
+        colorToken
+          ? {
+              backgroundColor: colorToken.container,
+              color: colorToken.onContainer,
+            }
+          : undefined
+      }
     >
-      <span>{day}</span>
+      <span className="text-sm leading-tight select-none">{day}</span>
 
       {/* Event dots */}
       {hasEvents && (
         <div
-          className="flex gap-0.5 mt-0.5 flex-wrap justify-center"
+          className="flex gap-1 mt-1 flex-wrap justify-center px-0.5"
           aria-hidden="true"
         >
-          {events.slice(0, 3).map(event => (
-            <span
-              key={event.id}
-              className="w-1.5 h-1.5 rounded-full"
-              style={{ backgroundColor: event.color }}
-            />
-          ))}
+          {events.slice(0, 3).map(event => {
+            const eventToken = getColorToken(event.color)
+            return (
+              <span
+                key={event.id}
+                className="w-1.5 h-1.5 rounded-full ring-1 ring-white/80"
+                style={{ backgroundColor: eventToken ? eventToken.accent : event.color }}
+              />
+            )
+          })}
         </div>
       )}
     </button>

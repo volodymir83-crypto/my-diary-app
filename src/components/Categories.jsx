@@ -1,177 +1,184 @@
+// src/components/Categories.jsx
 import { useState } from 'react'
 import PropTypes from 'prop-types'
 import { getUsedColors } from '../utils/colorUsage'
-
-// Curated from Refactoring UI guidelines to ensure strong semantic presence without overpowering
-const COLOR_PALETTE = [
-  '#C52707', // Red 
-  '#C65D21', // Orange
-  '#A27C1A', // Yellow
-  '#0A6C74', // Cyan
-  '#14919B', // Teal
-  '#0B69A3', // Blue
-  '#2D3A8C', // Indigo/Blue Grey
-  '#7C1A87', // Purple
-  '#AD4BB8', // Light Purple
-  '#486581', // Muted Blue
-  '#572508', // Dark Brown
-  '#102A43', // Darkest Blue
-]
+import { M3_CONTENT_PALETTE, getColorToken } from '../utils/m3Palette'
 
 const DEFAULT_IDS = ['legs', 'pull', 'push']
 
 export default function Categories({ categories, entries, events, onAdd, onDelete }) {
   const usedColors = getUsedColors({ categories, entries, events })
-  const availableColors = COLOR_PALETTE.filter(c => !usedColors.has(c))
+  const availableColors = M3_CONTENT_PALETTE.filter(c => !usedColors.has(c.id))
 
   const [label, setLabel] = useState('')
-  const [selectedColor, setSelectedColor] = useState(null)
+  const [selectedColorId, setSelectedColorId] = useState(null)
   const [error, setError] = useState('')
 
-  const color = selectedColor && availableColors.includes(selectedColor)
-    ? selectedColor
-    : availableColors[0] ?? null
+  const colorId = selectedColorId && availableColors.some(c => c.id === selectedColorId)
+    ? selectedColorId
+    : availableColors[0]?.id ?? null
 
   function handleAdd() {
-    // Validate on submit rather than inline or using disabled buttons
     if (!label.trim()) {
       setError('Please enter a category name.')
       return
     }
-    if (!color) {
+    if (!colorId) {
       setError('Please select a color for your category.')
       return
     }
     
-    // Clear errors and submit
     setError('')
-    onAdd(label.trim(), color)
+    onAdd(label.trim(), colorId)
     setLabel('')
-    setSelectedColor(null)
+    setSelectedColorId(null)
   }
 
   function handleLabelChange(e) {
     setLabel(e.target.value)
-    if (error) setError('') // Clear error when user starts correcting
+    if (error) setError('')
   }
 
   return (
-    <section aria-label="Manage workout categories" className="mb-8">
-      <h2 className="text-lg font-semibold text-slate-900 mb-4">
-        Workout Categories
-      </h2>
+    <section aria-label="Manage workout categories" className="flex flex-col gap-6">
+      <div>
+        <h2 className="text-base font-bold text-[#1E1B4B]">Workout Categories</h2>
+        <p className="text-xs text-[#45464F] mt-0.5">
+          Categories highlight calendar days and organize your training history.
+        </p>
+      </div>
 
-      {/* Existing categories */}
-      <ul className="flex flex-col gap-3 mb-8" aria-label="Category list">
-        {categories.map(cat => (
-          <li
-            key={cat.id}
-            className="flex items-center justify-between bg-white rounded-xl px-4 py-3 shadow-sm border border-slate-200"
-          >
-            <div className="flex items-center gap-3">
-              <span
-                className="w-4 h-4 rounded-full flex-shrink-0 shadow-inner"
-                style={{ backgroundColor: cat.color }}
-                aria-hidden="true"
-              />
-              <span className="text-sm font-medium text-slate-900">{cat.label}</span>
-              {DEFAULT_IDS.includes(cat.id) && (
-                <span className="text-xs text-slate-500 font-normal">(default)</span>
+      {/* Existing Categories List */}
+      <ul className="flex flex-col gap-2.5" aria-label="Category list">
+        {categories.map(cat => {
+          const token = getColorToken(cat.color)
+          const isDefault = DEFAULT_IDS.includes(cat.id)
+
+          return (
+            <li
+              key={cat.id}
+              className="flex items-center justify-between rounded-2xl px-4 py-3 shadow-xs border border-black/5"
+              style={{
+                backgroundColor: token ? token.container : '#EEF2FF',
+                color: token ? token.onContainer : '#1E1B4B',
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <span
+                  className="w-3.5 h-3.5 rounded-full ring-2 ring-white/80 shadow-xs flex-shrink-0"
+                  style={{ backgroundColor: token ? token.accent : cat.color }}
+                  aria-hidden="true"
+                />
+                <span className="text-sm font-bold tracking-tight">{cat.label}</span>
+                {isDefault && (
+                  <span className="text-xs font-medium opacity-70">(default)</span>
+                )}
+              </div>
+
+              {!isDefault && (
+                <button
+                  onClick={() => onDelete(cat.id)}
+                  aria-label={`Delete ${cat.label} category`}
+                  className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-black/10 active:scale-95 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#BA1A1A]"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
               )}
-            </div>
-            {!DEFAULT_IDS.includes(cat.id) && (
-              <button
-                onClick={() => onDelete(cat.id)}
-                aria-label={`Delete ${cat.label} category`}
-                className="text-slate-400 hover:text-red-600 hover:bg-red-50 transition px-2 py-2 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-            )}
-          </li>
-        ))}
+            </li>
+          )
+        })}
       </ul>
 
-      {/* Add new category */}
+      {/* Add New Category Card */}
       <section aria-labelledby="add-cat-label">
-        <h3
-          id="add-cat-label"
-          className="text-base font-semibold text-slate-900 mb-3"
-        >
-          Add new category
+        <h3 id="add-cat-label" className="text-sm font-bold text-[#1E1B4B] mb-2.5">
+          Create New Category
         </h3>
-        {/* Outer padding (p-5) is strictly greater than inner padding (gap-4) */}
-        <div className="bg-slate-50 rounded-xl p-5 shadow-sm border border-slate-200 flex flex-col gap-4">
-          
-          {/* Error Message rendering above fields */}
+
+        <div className="bg-[#FAF8FF] rounded-3xl p-5 shadow-xs border border-black/5 flex flex-col gap-4">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm flex items-center gap-2" role="alert">
+            <div
+              className="bg-[#FFDAD6] border border-[#BA1A1A]/20 text-[#410002] px-3.5 py-2.5 rounded-2xl text-xs font-semibold flex items-center gap-2"
+              role="alert"
+            >
               <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
-              {error}
+              <span>{error}</span>
             </div>
           )}
 
+          {/* Name Field */}
           <div className="flex flex-col gap-1.5">
-            <label
-              htmlFor="cat-name"
-              className="text-sm font-medium text-slate-900"
-            >
-              Name <span className="text-red-600" aria-hidden="true">*</span>
+            <label htmlFor="cat-name" className="text-xs font-bold uppercase tracking-wider text-[#45464F]">
+              Category Name <span className="text-[#BA1A1A]" aria-hidden="true">*</span>
             </label>
             <input
               id="cat-name"
               type="text"
               value={label}
               onChange={handleLabelChange}
-              placeholder="e.g. Cardio"
+              placeholder="e.g. Cardio, Chest, Recovery..."
               aria-required="true"
               aria-invalid={error.includes('name')}
-              className="w-full rounded-lg border border-slate-500 p-2 text-base text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-shadow"
+              className="w-full h-12 rounded-2xl border border-[#767680]/30 bg-white px-4 text-sm font-medium text-[#1E1B4B] placeholder-[#767680] focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 shadow-xs transition"
             />
           </div>
 
-          <div className="flex flex-col gap-2">
-            <p className="text-sm font-medium text-slate-900">
-              Color <span className="text-red-600" aria-hidden="true">*</span>
+          {/* Color Selection Palette */}
+          <div className="flex flex-col gap-1.5">
+            <p className="text-xs font-bold uppercase tracking-wider text-[#45464F]">
+              Color Accent <span className="text-[#BA1A1A]" aria-hidden="true">*</span>
             </p>
             {availableColors.length > 0 ? (
               <div
-                className="flex flex-wrap gap-3"
+                className="flex flex-wrap gap-1"
                 role="radiogroup"
                 aria-label="Select category color"
               >
-                {availableColors.map(c => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => {
-                      setSelectedColor(c)
-                      if (error) setError('')
-                    }}
-                    aria-label={`Color ${c}`}
-                    aria-checked={color === c}
-                    role="radio"
-                    className={`w-10 h-10 rounded-full transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-600 ${
-                      color === c ? 'ring-2 ring-offset-2 ring-slate-900 scale-110' : 'hover:scale-105'
-                    }`}
-                    style={{ backgroundColor: c }}
-                  />
-                ))}
+                {availableColors.map(c => {
+                  const isSelected = colorId === c.id
+                  return (
+                    <div key={c.id} className="w-12 h-12 flex items-center justify-center">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedColorId(c.id)
+                          if (error) setError('')
+                        }}
+                        aria-label={`Color ${c.label}`}
+                        aria-checked={isSelected}
+                        role="radio"
+                        className={`w-9 h-9 rounded-full transition-all flex items-center justify-center shadow-xs ${
+                          isSelected
+                            ? 'ring-3 ring-offset-2 ring-[#4F46E5] scale-110'
+                            : 'hover:scale-105 border border-black/10'
+                        }`}
+                        style={{ backgroundColor: c.accent }}
+                      >
+                        {isSelected && (
+                          <svg className="w-4 h-4 text-white drop-shadow-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                  )
+                })}
               </div>
             ) : (
-              <p className="text-sm text-amber-800 bg-amber-100 border border-amber-200 rounded-lg px-4 py-3">
-                Every preset color is currently in use. Delete an existing category to free up a color.
+              <p className="text-xs font-medium text-[#45464F] bg-[#EEF2FF] border border-black/5 rounded-2xl p-3">
+                All preset colors are currently assigned. Delete an existing category to free up its color.
               </p>
             )}
           </div>
 
+          {/* Add Action Button */}
           <button
             onClick={handleAdd}
-            className="w-full mt-2 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-white font-semibold rounded-lg py-2 text-base transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/50 shadow-sm"
+            className="w-full h-12 mt-1 bg-[#4F46E5] hover:bg-[#4338CA] active:scale-98 text-white font-bold rounded-full text-sm shadow-sm transition flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#4F46E5]"
           >
             Add Category
           </button>
