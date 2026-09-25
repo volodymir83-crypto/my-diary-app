@@ -21,10 +21,10 @@ export default function DayCell({ day, dateKey, isToday, entryColor, events, onC
       className={[
         "relative flex flex-col items-center justify-start",
         "w-full aspect-square rounded-xl pt-1.5 pb-1",
-        "transition-all duration-150",
+        // Scoped transform transition only for active tap: zero GPU thrashing during swipes
+        "transition-transform duration-100",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B] focus-visible:z-10",
         "active:scale-95 shadow-sm",
-        // Default Luminous Frost cell (#EEF2FF) with Deep Midnight text (#1E1B4B)
         colorToken
           ? "border border-black/10"
           : "bg-[#EEF2FF] text-[#1E1B4B] hover:bg-white border border-white/60",

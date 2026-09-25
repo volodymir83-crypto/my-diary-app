@@ -60,6 +60,7 @@ src/
     useDiary.js
   utils/
     colorUsage.js
+    m3Palette.js
     notePreview.js
   App.css
   App.jsx
@@ -91,24 +92,101 @@ This section contains the contents of the repository's files.
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" class="iconify iconify--logos" width="35.93" height="32" preserveAspectRatio="xMidYMid meet" viewBox="0 0 256 228"><path fill="#00D8FF" d="M210.483 73.824a171.49 171.49 0 0 0-8.24-2.597c.465-1.9.893-3.777 1.273-5.621c6.238-30.281 2.16-54.676-11.769-62.708c-13.355-7.7-35.196.329-57.254 19.526a171.23 171.23 0 0 0-6.375 5.848a155.866 155.866 0 0 0-4.241-3.917C100.759 3.829 77.587-4.822 63.673 3.233C50.33 10.957 46.379 33.89 51.995 62.588a170.974 170.974 0 0 0 1.892 8.48c-3.28.932-6.445 1.924-9.474 2.98C17.309 83.498 0 98.307 0 113.668c0 15.865 18.582 31.778 46.812 41.427a145.52 145.52 0 0 0 6.921 2.165a167.467 167.467 0 0 0-2.01 9.138c-5.354 28.2-1.173 50.591 12.134 58.266c13.744 7.926 36.812-.22 59.273-19.855a145.567 145.567 0 0 0 5.342-4.923a168.064 168.064 0 0 0 6.92 6.314c21.758 18.722 43.246 26.282 56.54 18.586c13.731-7.949 18.194-32.003 12.4-61.268a145.016 145.016 0 0 0-1.535-6.842c1.62-.48 3.21-.974 4.76-1.488c29.348-9.723 48.443-25.443 48.443-41.52c0-15.417-17.868-30.326-45.517-39.844Zm-6.365 70.984c-1.4.463-2.836.91-4.3 1.345c-3.24-10.257-7.612-21.163-12.963-32.432c5.106-11 9.31-21.767 12.459-31.957c2.619.758 5.16 1.557 7.61 2.4c23.69 8.156 38.14 20.213 38.14 29.504c0 9.896-15.606 22.743-40.946 31.14Zm-10.514 20.834c2.562 12.94 2.927 24.64 1.23 33.787c-1.524 8.219-4.59 13.698-8.382 15.893c-8.067 4.67-25.32-1.4-43.927-17.412a156.726 156.726 0 0 1-6.437-5.87c7.214-7.889 14.423-17.06 21.459-27.246c12.376-1.098 24.068-2.894 34.671-5.345a134.17 134.17 0 0 1 1.386 6.193ZM87.276 214.515c-7.882 2.783-14.16 2.863-17.955.675c-8.075-4.657-11.432-22.636-6.853-46.752a156.923 156.923 0 0 1 1.869-8.499c10.486 2.32 22.093 3.988 34.498 4.994c7.084 9.967 14.501 19.128 21.976 27.15a134.668 134.668 0 0 1-4.877 4.492c-9.933 8.682-19.886 14.842-28.658 17.94ZM50.35 144.747c-12.483-4.267-22.792-9.812-29.858-15.863c-6.35-5.437-9.555-10.836-9.555-15.216c0-9.322 13.897-21.212 37.076-29.293c2.813-.98 5.757-1.905 8.812-2.773c3.204 10.42 7.406 21.315 12.477 32.332c-5.137 11.18-9.399 22.249-12.634 32.792a134.718 134.718 0 0 1-6.318-1.979Zm12.378-84.26c-4.811-24.587-1.616-43.134 6.425-47.789c8.564-4.958 27.502 2.111 47.463 19.835a144.318 144.318 0 0 1 3.841 3.545c-7.438 7.987-14.787 17.08-21.808 26.988c-12.04 1.116-23.565 2.908-34.161 5.309a160.342 160.342 0 0 1-1.76-7.887Zm110.427 27.268a347.8 347.8 0 0 0-7.785-12.803c8.168 1.033 15.994 2.404 23.343 4.08c-2.206 7.072-4.956 14.465-8.193 22.045a381.151 381.151 0 0 0-7.365-13.322Zm-45.032-43.861c5.044 5.465 10.096 11.566 15.065 18.186a322.04 322.04 0 0 0-30.257-.006c4.974-6.559 10.069-12.652 15.192-18.18ZM82.802 87.83a323.167 323.167 0 0 0-7.227 13.238c-3.184-7.553-5.909-14.98-8.134-22.152c7.304-1.634 15.093-2.97 23.209-3.984a321.524 321.524 0 0 0-7.848 12.897Zm8.081 65.352c-8.385-.936-16.291-2.203-23.593-3.793c2.26-7.3 5.045-14.885 8.298-22.6a321.187 321.187 0 0 0 7.257 13.246c2.594 4.48 5.28 8.868 8.038 13.147Zm37.542 31.03c-5.184-5.592-10.354-11.779-15.403-18.433c4.902.192 9.899.29 14.978.29c5.218 0 10.376-.117 15.453-.343c-4.985 6.774-10.018 12.97-15.028 18.486Zm52.198-57.817c3.422 7.8 6.306 15.345 8.596 22.52c-7.422 1.694-15.436 3.058-23.88 4.071a382.417 382.417 0 0 0 7.859-13.026a347.403 347.403 0 0 0 7.425-13.565Zm-16.898 8.101a358.557 358.557 0 0 1-12.281 19.815a329.4 329.4 0 0 1-23.444.823c-7.967 0-15.716-.248-23.178-.732a310.202 310.202 0 0 1-12.513-19.846h.001a307.41 307.41 0 0 1-10.923-20.627a310.278 310.278 0 0 1 10.89-20.637l-.001.001a307.318 307.318 0 0 1 12.413-19.761c7.613-.576 15.42-.876 23.31-.876H128c7.926 0 15.743.303 23.354.883a329.357 329.357 0 0 1 12.335 19.695a358.489 358.489 0 0 1 11.036 20.54a329.472 329.472 0 0 1-11 20.722Zm22.56-122.124c8.572 4.944 11.906 24.881 6.52 51.026c-.344 1.668-.73 3.367-1.15 5.09c-10.622-2.452-22.155-4.275-34.23-5.408c-7.034-10.017-14.323-19.124-21.64-27.008a160.789 160.789 0 0 1 5.888-5.4c18.9-16.447 36.564-22.941 44.612-18.3ZM128 90.808c12.625 0 22.86 10.235 22.86 22.86s-10.235 22.86-22.86 22.86s-22.86-10.235-22.86-22.86s10.235-22.86 22.86-22.86Z"></path></svg>
 </file>
 
-<file path="src/utils/colorUsage.js">
-// Returns a Set of every color currently assigned to a category, a manually
-// highlighted entry, or an event — used to keep colors unique across the app.
-export function getUsedColors({ categories, entries, events, excludeDateKey }) {
-  const used = new Set()
+<file path="src/utils/m3Palette.js">
+// src/utils/m3Palette.js
 
-  categories.forEach(cat => used.add(cat.color))
+/**
+ * 10 Harmonized M3 Content Roles.
+ * Every item contains paired container and onContainer colors
+ * to guarantee WCAG 2.2 AA/AAA legibility across all backgrounds.
+ */
+export const M3_CONTENT_PALETTE = [
+  { id: 'coral',   label: 'Coral',   accent: '#D84E29', container: '#FFDBCF', onContainer: '#380D02' },
+  { id: 'amber',   label: 'Amber',   accent: '#C68900', container: '#FFE08B', onContainer: '#241A00' },
+  { id: 'emerald', label: 'Emerald', accent: '#1B9A5B', container: '#B8F5D0', onContainer: '#002110' },
+  { id: 'teal',    label: 'Teal',    accent: '#00838F', container: '#AFECEF', onContainer: '#002022' },
+  { id: 'cyan',    label: 'Cyan',    accent: '#007FB6', container: '#C2E8FF', onContainer: '#001E2C' },
+  { id: 'indigo',  label: 'Indigo',  accent: '#4355B9', container: '#DEE0FF', onContainer: '#001159' },
+  { id: 'violet',  label: 'Violet',  accent: '#7C3AED', container: '#EADBFF', onContainer: '#24005B' },
+  { id: 'pink',    label: 'Pink',    accent: '#CE378B', container: '#FFD8EC', onContainer: '#370729' },
+  { id: 'rose',    label: 'Rose',    accent: '#DC2626', container: '#FFD9DF', onContainer: '#3B0813' },
+  { id: 'slate',   label: 'Slate',   accent: '#5C6479', container: '#E0E2EC', onContainer: '#181C22' },
+]
 
-  Object.entries(entries).forEach(([dateKey, entry]) => {
-    if (dateKey === excludeDateKey) return
-    // Only count manually picked highlight colors — category-derived
-    // colors are already covered by the categories loop above.
-    if (!entry.category && entry.color) used.add(entry.color)
-  })
+/**
+ * Helper to determine high-contrast text (dark or light) for legacy arbitrary hex codes.
+ */
+function getContrastingTextColor(hex) {
+  if (!hex || typeof hex !== 'string') return '#1A1B21'
+  const cleanHex = hex.replace('#', '')
+  if (cleanHex.length < 6) return '#1A1B21'
 
-  events.forEach(event => used.add(event.color))
+  const r = parseInt(cleanHex.substring(0, 2), 16) || 0
+  const g = parseInt(cleanHex.substring(2, 4), 16) || 0
+  const b = parseInt(cleanHex.substring(4, 6), 16) || 0
 
-  return used
+  // Perceived luminance formula (YIQ)
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000
+  return yiq >= 140 ? '#1A1B21' : '#FFFFFF'
+}
+
+/**
+ * Maps legacy pastel defaults to their nearest M3 token
+ */
+const LEGACY_COLOR_MAP = {
+  '#fca5a5': 'coral',
+  '#93c5fd': 'indigo',
+  '#fde68a': 'amber',
+  '#bbf7d0': 'emerald',
+  '#bfdbfe': 'cyan',
+  '#fbcfe8': 'pink',
+  '#e9d5ff': 'violet',
+  '#fed7aa': 'amber',
+  '#f87171': 'rose',
+  '#fbbf24': 'amber',
+  '#facc15': 'amber',
+  '#4ade80': 'emerald',
+  '#2dd4bf': 'teal',
+  '#22d3ee': 'cyan',
+  '#60a5fa': 'indigo',
+  '#818cf8': 'indigo',
+  '#a78bfa': 'violet',
+  '#f472b6': 'pink',
+}
+
+/**
+ * Resolves a full M3 Color Token from a token ID, hex accent, or legacy hex code.
+ * Always returns a valid object with { id, label, accent, container, onContainer }.
+ */
+export function getColorToken(colorOrId) {
+  if (!colorOrId) return null
+
+  // 1. Direct ID match (e.g. 'coral')
+  const byId = M3_CONTENT_PALETTE.find(item => item.id === colorOrId)
+  if (byId) return byId
+
+  // 2. Direct Accent / Container hex match
+  const byHex = M3_CONTENT_PALETTE.find(
+    item => item.accent.toLowerCase() === colorOrId.toLowerCase() ||
+            item.container.toLowerCase() === colorOrId.toLowerCase()
+  )
+  if (byHex) return byHex
+
+  // 3. Known legacy color lookup
+  const mappedId = LEGACY_COLOR_MAP[colorOrId.toLowerCase()]
+  if (mappedId) {
+    const legacyMatch = M3_CONTENT_PALETTE.find(item => item.id === mappedId)
+    if (legacyMatch) return legacyMatch
+  }
+
+  // 4. Fallback for unmapped custom hex values: compute contrasting text dynamically
+  return {
+    id: colorOrId,
+    label: 'Custom',
+    accent: colorOrId,
+    container: colorOrId,
+    onContainer: getContrastingTextColor(colorOrId),
+  }
 }
 </file>
 
@@ -410,331 +488,52 @@ Currently, two official plugins are available:
 - [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 </file>
 
-<file path="tailwind.config.js">
-/** @type {import('tailwindcss').Config} */
-export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,jsx}",
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
-}
-</file>
+<file path="src/utils/colorUsage.js">
+// src/utils/colorUsage.js
+import { getColorToken } from './m3Palette'
 
-<file path="src/components/DataBackup.jsx">
-import { useState, useRef } from 'react'
-import PropTypes from 'prop-types'
+// Returns a Set of every color token ID and hex representation currently assigned
+// to a category, a manually highlighted entry, or an event.
+// This prevents duplicate colors while remaining compatible with legacy data.
+export function getUsedColors({ categories = [], entries = {}, events = [], excludeDateKey }) {
+  const used = new Set()
 
-function buildExportPayload(entries, events, categories) {
-  return {
-    app: 'My Diary',
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    entries,
-    events,
-    categories,
-  }
-}
+  function markUsed(colorValue) {
+    if (!colorValue) return
 
-export default function DataBackup({ entries, events, categories, onImport }) {
-  const [exportedText, setExportedText] = useState(null)
-  const [pendingImport, setPendingImport] = useState(null)
-  const [importError, setImportError] = useState(null)
-  const fileInputRef = useRef(null)
+    // Register raw value (handles custom or legacy hex)
+    used.add(colorValue)
+    used.add(colorValue.toLowerCase())
 
-  const entryCount = Object.keys(entries).length
-  const eventCount = events.length
-  const categoryCount = categories.length
-
-  function handleExport() {
-    const payload = buildExportPayload(entries, events, categories)
-    const json = JSON.stringify(payload, null, 2)
-    setExportedText(json)
-
-    try {
-      const blob = new Blob([json], { type: 'application/json' })
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-      const dateStamp = new Date().toISOString().slice(0, 10)
-      link.download = `my-diary-backup-${dateStamp}.json`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
-    } catch {
-      // Download may not trigger on every device — the text box below
-      // still lets you copy the backup manually.
-    }
-  }
-
-  function handleFileSelected(e) {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setImportError(null)
-
-    const reader = new FileReader()
-    reader.onload = () => {
-      try {
-        const data = JSON.parse(reader.result)
-        const looksValid =
-          typeof data === 'object' && data !== null &&
-          typeof data.entries === 'object' && data.entries !== null &&
-          Array.isArray(data.events) &&
-          Array.isArray(data.categories)
-
-        if (!looksValid) {
-          setImportError("This file doesn't look like a diary backup.")
-          return
-        }
-
-        setPendingImport({
-          data,
-          summary: {
-            entries: Object.keys(data.entries).length,
-            events: data.events.length,
-            categories: data.categories.length,
-          },
-        })
-      } catch {
-        setImportError("Couldn't read that file — make sure it's a valid backup .json file.")
+    // Resolve M3 token and register both id and hex variations
+    const token = getColorToken(colorValue)
+    if (token) {
+      used.add(token.id)
+      if (token.accent) {
+        used.add(token.accent)
+        used.add(token.accent.toLowerCase())
+      }
+      if (token.container) {
+        used.add(token.container)
+        used.add(token.container.toLowerCase())
       }
     }
-    reader.readAsText(file)
-    e.target.value = ''
   }
 
-  function confirmImport() {
-    onImport(pendingImport.data)
-    setPendingImport(null)
-  }
+  categories.forEach(cat => markUsed(cat.color))
 
-  return (
-    <section aria-label="Backup and restore" className="flex flex-col gap-4">
-      <div>
-        <h2 className="text-base font-semibold text-gray-800">Backup &amp; Restore</h2>
-        <p className="text-xs text-gray-500 mt-1">
-          Your notes only live on this device. Export a backup before reinstalling the app, or anytime after making important entries.
-        </p>
-      </div>
+  Object.entries(entries).forEach(([dateKey, entry]) => {
+    if (dateKey === excludeDateKey) return
+    // Only count manually picked highlight colors — category-derived
+    // colors are already accounted for by the categories loop above.
+    if (!entry.category && entry.color) {
+      markUsed(entry.color)
+    }
+  })
 
-      {/* Export */}
-      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex flex-col gap-3">
-        <div>
-          <h3 className="text-sm font-medium text-gray-700">Export</h3>
-          <p className="text-xs text-gray-500 mt-0.5">
-            {entryCount} {entryCount === 1 ? 'entry' : 'entries'} · {eventCount} {eventCount === 1 ? 'event' : 'events'} · {categoryCount} {categoryCount === 1 ? 'category' : 'categories'}
-          </p>
-        </div>
-        <button
-          onClick={handleExport}
-          className="w-full bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-white font-medium rounded-xl py-2.5 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-700"
-        >
-          Download backup file
-        </button>
-        {exportedText && (
-          <div>
-            <label htmlFor="export-text" className="block text-xs text-gray-500 mb-1">
-              If the download didn&rsquo;t save anywhere you can find, tap the box below to select all, then copy it manually:
-            </label>
-            <textarea
-              id="export-text"
-              readOnly
-              value={exportedText}
-              rows={4}
-              onFocus={e => e.target.select()}
-              className="w-full rounded-xl border border-gray-300 p-2.5 text-xs font-mono resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        )}
-      </div>
+  events.forEach(event => markUsed(event.color))
 
-      {/* Import */}
-      <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex flex-col gap-3">
-        <div>
-          <h3 className="text-sm font-medium text-gray-700">Restore</h3>
-          <p className="text-xs text-gray-500 mt-0.5">
-            Choose a previously exported backup file. Entries on the same date will be replaced by the backup&rsquo;s version.
-          </p>
-        </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="application/json,.json"
-          onChange={handleFileSelected}
-          aria-label="Choose backup file to restore"
-          className="text-xs text-gray-600 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:bg-gray-100 file:text-gray-700 file:text-xs file:font-medium hover:file:bg-gray-200"
-        />
-        {importError && (
-          <p className="text-xs text-red-600 bg-red-50 rounded-lg px-3 py-2">{importError}</p>
-        )}
-      </div>
-
-      {/* Confirm import dialog */}
-      {pendingImport && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Confirm restore"
-          className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-4"
-        >
-          <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl p-4 flex flex-col gap-4">
-            <h3 className="text-base font-semibold text-gray-800">Restore this backup?</h3>
-            <p className="text-sm text-gray-600">
-              This file has {pendingImport.summary.entries} {pendingImport.summary.entries === 1 ? 'entry' : 'entries'}, {pendingImport.summary.events} {pendingImport.summary.events === 1 ? 'event' : 'events'}, and {pendingImport.summary.categories} {pendingImport.summary.categories === 1 ? 'category' : 'categories'}. It will be merged into what you have now — any entry on the same date will be replaced by the backup&rsquo;s version.
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setPendingImport(null)}
-                className="flex-1 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-medium rounded-xl py-2.5 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmImport}
-                className="flex-1 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-white font-medium rounded-xl py-2.5 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-700"
-              >
-                Restore
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-    </section>
-  )
-}
-
-DataBackup.propTypes = {
-  entries: PropTypes.objectOf(
-    PropTypes.shape({
-      note:     PropTypes.string,
-      color:    PropTypes.string,
-      category: PropTypes.string,
-    })
-  ).isRequired,
-  events: PropTypes.arrayOf(
-    PropTypes.shape({
-      id:    PropTypes.number.isRequired,
-      date:  PropTypes.string.isRequired,
-      title: PropTypes.string.isRequired,
-      color: PropTypes.string.isRequired,
-    })
-  ).isRequired,
-  categories: PropTypes.arrayOf(
-    PropTypes.shape({
-      id:    PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired,
-      color: PropTypes.string.isRequired,
-    })
-  ).isRequired,
-  onImport: PropTypes.func.isRequired,
-}
-</file>
-
-<file path="src/hooks/useDiary.js">
-import { useState, useEffect } from "react"
-
-const ENTRIES_KEY    = "diary_entries"
-const EVENTS_KEY     = "diary_events"
-const CATEGORIES_KEY = "diary_categories"
-
-const DEFAULT_CATEGORIES = [
-  { id: 'legs', label: 'Legs', color: '#fca5a5' },
-  { id: 'pull', label: 'Pull', color: '#93c5fd' },
-  { id: 'push', label: 'Push', color: '#fde68a' },
-]
-
-function load(key, fallback) {
-  try {
-    const raw = localStorage.getItem(key)
-    return raw ? JSON.parse(raw) : fallback
-  } catch {
-    return fallback
-  }
-}
-
-export function useDiary() {
-  const [entries,    setEntries]    = useState(() => load(ENTRIES_KEY,    {}))
-  const [events,     setEvents]     = useState(() => load(EVENTS_KEY,     []))
-  const [categories, setCategories] = useState(() => load(CATEGORIES_KEY, DEFAULT_CATEGORIES))
-
-  useEffect(() => {
-    localStorage.setItem(ENTRIES_KEY, JSON.stringify(entries))
-  }, [entries])
-
-  useEffect(() => {
-    localStorage.setItem(EVENTS_KEY, JSON.stringify(events))
-  }, [events])
-
-  useEffect(() => {
-    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories))
-  }, [categories])
-
-  function saveEntry(dateKey, note, color, category) {
-    setEntries(prev => ({ ...prev, [dateKey]: { note, color, category } }))
-  }
-
-  function deleteEntry(dateKey) {
-    setEntries(prev => {
-      const next = { ...prev }
-      delete next[dateKey]
-      return next
-    })
-  }
-
-  function addEvent(dateKey, title, color) {
-    setEvents(prev => [
-      ...prev,
-      { id: Date.now(), date: dateKey, title, color }
-    ])
-  }
-
-  function deleteEvent(id) {
-    setEvents(prev => prev.filter(e => e.id !== id))
-  }
-
-  function addCategory(label, color) {
-    setCategories(prev => [
-      ...prev,
-      { id: Date.now().toString(), label, color }
-    ])
-  }
-
-  function deleteCategory(id) {
-    setCategories(prev => prev.filter(c => c.id !== id))
-  }
-
-  function importData({ entries: importedEntries, events: importedEvents, categories: importedCategories }) {
-    setEntries(prev => ({ ...prev, ...importedEntries }))
-
-    setEvents(prev => {
-      const existingIds = new Set(prev.map(e => e.id))
-      const newOnes = importedEvents.filter(e => !existingIds.has(e.id))
-      return [...prev, ...newOnes]
-    })
-
-    setCategories(prev => {
-      const merged = [...prev]
-      importedCategories.forEach(cat => {
-        const idx = merged.findIndex(c => c.id === cat.id)
-        if (idx === -1) merged.push(cat)
-        else merged[idx] = cat
-      })
-      return merged
-    })
-  }
-
-  return {
-    entries, events, categories,
-    saveEntry, deleteEntry,
-    addEvent, deleteEvent,
-    addCategory, deleteCategory,
-    importData,
-  }
+  return used
 }
 </file>
 
@@ -841,6 +640,56 @@ export default [
 ]
 </file>
 
+<file path="tailwind.config.js">
+// tailwind.config.js
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,jsx}",
+  ],
+  theme: {
+    extend: {
+      colors: {
+        // Luminous Glow & Neon Indigo Canvas Scheme
+        'm3-canvas': '#6366F1',             // Vivid Neon Indigo main background
+        'm3-surface-glow': '#EEF2FF',       // Luminous Frost (Day cells, bars, Today FAB)
+        'm3-active-pill': '#C7D2FE',        // Clear Lavender for M3 active nav indicator
+        'm3-text-midnight': '#1E1B4B',      // Deep Midnight high-contrast text (AAA)
+        'm3-text-secondary': '#4338CA',     // Electric Indigo for inactive nav items
+
+        // Core Brand Roles
+        'm3-primary': '#4355B9',
+        'm3-on-primary': '#FFFFFF',
+        'm3-primary-container': '#DEE0FF',
+        'm3-on-primary-container': '#001159',
+
+        // Tonal Surface Elevation Hierarchy
+        'm3-surface': '#6366F1',
+        'm3-surface-container-lowest': '#FFFFFF',
+        'm3-surface-container-low': '#F4F2FA',
+        'm3-surface-container': '#EEEBF4',
+        'm3-surface-container-high': '#E8E5EE',
+        'm3-surface-container-highest': '#E2E0E8',
+
+        // Typography & Outlines
+        'm3-on-surface': '#1E1B4B',
+        'm3-on-surface-variant': '#45464F',
+        'm3-outline': '#767680',
+        'm3-outline-variant': '#C6C5D0',
+
+        // Error Roles
+        'm3-error': '#BA1A1A',
+        'm3-on-error': '#FFFFFF',
+        'm3-error-container': '#FFDAD6',
+        'm3-on-error-container': '#410002',
+      },
+    },
+  },
+  plugins: [],
+}
+</file>
+
 <file path="vite.config.js">
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
@@ -858,181 +707,542 @@ export default defineConfig({
 })
 </file>
 
+<file path="src/components/DataBackup.jsx">
+// src/components/DataBackup.jsx
+import { useState, useRef } from 'react'
+import PropTypes from 'prop-types'
+
+function buildExportPayload(entries, events, categories) {
+  return {
+    app: 'My Diary',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    entries,
+    events,
+    categories,
+  }
+}
+
+export default function DataBackup({ entries, events, categories, onImport }) {
+  const [exportedText, setExportedText] = useState(null)
+  const [pendingImport, setPendingImport] = useState(null)
+  const [importError, setImportError] = useState(null)
+  const fileInputRef = useRef(null)
+
+  const entryCount = Object.keys(entries).length
+  const eventCount = events.length
+  const categoryCount = categories.length
+
+  function handleExport() {
+    const payload = buildExportPayload(entries, events, categories)
+    const json = JSON.stringify(payload, null, 2)
+    setExportedText(json)
+
+    try {
+      const blob = new Blob([json], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      const dateStamp = new Date().toISOString().slice(0, 10)
+      link.download = `my-diary-backup-${dateStamp}.json`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+    } catch {
+      // Manual copy fallback remains available in the textarea below
+    }
+  }
+
+  function handleFileSelected(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImportError(null)
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      try {
+        const data = JSON.parse(reader.result)
+        const looksValid =
+          typeof data === 'object' && data !== null &&
+          typeof data.entries === 'object' && data.entries !== null &&
+          Array.isArray(data.events) &&
+          Array.isArray(data.categories)
+
+        if (!looksValid) {
+          setImportError("This file does not match a valid My Diary backup format.")
+          return
+        }
+
+        setPendingImport({
+          data,
+          summary: {
+            entries: Object.keys(data.entries).length,
+            events: data.events.length,
+            categories: data.categories.length,
+          },
+        })
+      } catch {
+        setImportError("Unable to parse file. Please select a valid .json backup file.")
+      }
+    }
+    reader.readAsText(file)
+    e.target.value = ''
+  }
+
+  function confirmImport() {
+    onImport(pendingImport.data)
+    setPendingImport(null)
+  }
+
+  return (
+    <section aria-label="Backup and restore" className="flex flex-col gap-6">
+      <div>
+        <h2 className="text-base font-bold text-[#1E1B4B]">Backup &amp; Restore</h2>
+        <p className="text-xs text-[#45464F] mt-0.5">
+          Your diary entries reside solely on this device. Export regular backups to prevent accidental data loss.
+        </p>
+      </div>
+
+      {/* Export Card */}
+      <div className="bg-[#FAF8FF] rounded-3xl p-5 shadow-xs border border-black/5 flex flex-col gap-4">
+        <div>
+          <h3 className="text-sm font-bold text-[#1E1B4B]">Export Data</h3>
+          <p className="text-xs font-semibold text-[#45464F] mt-0.5">
+            {entryCount} {entryCount === 1 ? 'entry' : 'entries'} · {eventCount} {eventCount === 1 ? 'event' : 'events'} · {categoryCount} {categoryCount === 1 ? 'category' : 'categories'}
+          </p>
+        </div>
+
+        <button
+          onClick={handleExport}
+          className="w-full h-12 bg-[#4F46E5] hover:bg-[#4338CA] active:scale-98 text-white font-bold rounded-full text-sm shadow-sm transition flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#4F46E5]"
+        >
+          Download Backup File
+        </button>
+
+        {exportedText && (
+          <div className="flex flex-col gap-1.5 pt-1">
+            <label htmlFor="export-text" className="text-xs font-bold text-[#45464F]">
+              Direct JSON Backup (tap to select all and copy):
+            </label>
+            <textarea
+              id="export-text"
+              readOnly
+              value={exportedText}
+              rows={4}
+              onFocus={e => e.target.select()}
+              className="w-full rounded-2xl border border-[#767680]/30 bg-white p-3 text-xs font-mono text-[#1E1B4B] resize-none focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 shadow-xs"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Import Card */}
+      <div className="bg-[#FAF8FF] rounded-3xl p-5 shadow-xs border border-black/5 flex flex-col gap-4">
+        <div>
+          <h3 className="text-sm font-bold text-[#1E1B4B]">Restore Data</h3>
+          <p className="text-xs text-[#45464F] mt-0.5">
+            Select a previous JSON backup to restore. Existing dates with same-day notes will be updated.
+          </p>
+        </div>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="application/json,.json"
+          onChange={handleFileSelected}
+          aria-label="Choose backup file to restore"
+          className="text-xs text-[#45464F] file:mr-3 file:h-11 file:px-5 file:rounded-full file:border-0 file:bg-[#EEF2FF] file:text-[#1E1B4B] file:text-xs file:font-bold hover:file:bg-[#C7D2FE] file:transition file:cursor-pointer"
+        />
+
+        {importError && (
+          <div
+            className="bg-[#FFDAD6] border border-[#BA1A1A]/20 text-[#410002] px-3.5 py-2.5 rounded-2xl text-xs font-semibold flex items-center gap-2"
+            role="alert"
+          >
+            <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+            </svg>
+            <span>{importError}</span>
+          </div>
+        )}
+      </div>
+
+      {/* M3 Restore Confirmation Modal Sheet */}
+      {pendingImport && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Confirm restore"
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center z-50 p-2 sm:p-4"
+        >
+          <div className="bg-[#FAF8FF] rounded-3xl w-full max-w-sm shadow-2xl p-5 border border-black/5 flex flex-col gap-4">
+            <h3 className="text-base font-bold text-[#1E1B4B]">Restore Backup?</h3>
+            <p className="text-xs text-[#45464F] leading-relaxed">
+              This backup file contains <strong className="text-[#1E1B4B]">{pendingImport.summary.entries}</strong> entries, <strong className="text-[#1E1B4B]">{pendingImport.summary.events}</strong> events, and <strong className="text-[#1E1B4B]">{pendingImport.summary.categories}</strong> categories. Existing data on identical dates will be overwritten.
+            </p>
+            <div className="flex gap-2.5 pt-1">
+              <button
+                onClick={() => setPendingImport(null)}
+                className="flex-1 h-12 bg-[#EEF2FF] hover:bg-[#C7D2FE] active:scale-98 text-[#1E1B4B] font-bold rounded-full text-xs transition flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmImport}
+                className="flex-1 h-12 bg-[#4F46E5] hover:bg-[#4338CA] active:scale-98 text-white font-bold rounded-full text-xs shadow-sm transition flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#4F46E5]"
+              >
+                Confirm Restore
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </section>
+  )
+}
+
+DataBackup.propTypes = {
+  entries: PropTypes.objectOf(
+    PropTypes.shape({
+      note:     PropTypes.string,
+      color:    PropTypes.string,
+      category: PropTypes.string,
+    })
+  ).isRequired,
+  events: PropTypes.arrayOf(
+    PropTypes.shape({
+      id:    PropTypes.number.isRequired,
+      date:  PropTypes.string.isRequired,
+      title: PropTypes.string.isRequired,
+      color: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  categories: PropTypes.arrayOf(
+    PropTypes.shape({
+      id:    PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      color: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  onImport: PropTypes.func.isRequired,
+}
+</file>
+
+<file path="src/hooks/useDiary.js">
+// src/hooks/useDiary.js
+import { useState, useEffect } from "react"
+
+const ENTRIES_KEY    = "diary_entries"
+const EVENTS_KEY     = "diary_events"
+const CATEGORIES_KEY = "diary_categories"
+
+// M3 Harmonized Content Roles as default categories
+const DEFAULT_CATEGORIES = [
+  { id: 'legs', label: 'Legs', color: 'coral' },
+  { id: 'pull', label: 'Pull', color: 'indigo' },
+  { id: 'push', label: 'Push', color: 'amber' },
+]
+
+function load(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key)
+    return raw ? JSON.parse(raw) : fallback
+  } catch {
+    return fallback
+  }
+}
+
+export function useDiary() {
+  const [entries,    setEntries]    = useState(() => load(ENTRIES_KEY,    {}))
+  const [events,     setEvents]     = useState(() => load(EVENTS_KEY,     []))
+  const [categories, setCategories] = useState(() => load(CATEGORIES_KEY, DEFAULT_CATEGORIES))
+
+  useEffect(() => {
+    localStorage.setItem(ENTRIES_KEY, JSON.stringify(entries))
+  }, [entries])
+
+  useEffect(() => {
+    localStorage.setItem(EVENTS_KEY, JSON.stringify(events))
+  }, [events])
+
+  useEffect(() => {
+    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(categories))
+  }, [categories])
+
+  function saveEntry(dateKey, note, color, category) {
+    setEntries(prev => ({ ...prev, [dateKey]: { note, color, category } }))
+  }
+
+  function deleteEntry(dateKey) {
+    setEntries(prev => {
+      const next = { ...prev }
+      delete next[dateKey]
+      return next
+    })
+  }
+
+  function addEvent(dateKey, title, color) {
+    setEvents(prev => [
+      ...prev,
+      { id: Date.now(), date: dateKey, title, color }
+    ])
+  }
+
+  function deleteEvent(id) {
+    setEvents(prev => prev.filter(e => e.id !== id))
+  }
+
+  function addCategory(label, color) {
+    setCategories(prev => [
+      ...prev,
+      { id: Date.now().toString(), label, color }
+    ])
+  }
+
+  function deleteCategory(id) {
+    setCategories(prev => prev.filter(c => c.id !== id))
+  }
+
+  function importData({ entries: importedEntries, events: importedEvents, categories: importedCategories }) {
+    setEntries(prev => ({ ...prev, ...importedEntries }))
+
+    setEvents(prev => {
+      const existingIds = new Set(prev.map(e => e.id))
+      const newOnes = importedEvents.filter(e => !existingIds.has(e.id))
+      return [...prev, ...newOnes]
+    })
+
+    setCategories(prev => {
+      const merged = [...prev]
+      importedCategories.forEach(cat => {
+        const idx = merged.findIndex(c => c.id === cat.id)
+        if (idx === -1) merged.push(cat)
+        else merged[idx] = cat
+      })
+      return merged
+    })
+  }
+
+  return {
+    entries, events, categories,
+    saveEntry, deleteEntry,
+    addEvent, deleteEvent,
+    addCategory, deleteCategory,
+    importData,
+  }
+}
+</file>
+
+<file path="src/index.css">
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body, #root {
+    width: 100%;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@layer utilities {
+  /* Hide scrollbars while retaining touch scroll physics */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+</file>
+
 <file path="src/components/Categories.jsx">
+// src/components/Categories.jsx
 import { useState } from 'react'
 import PropTypes from 'prop-types'
 import { getUsedColors } from '../utils/colorUsage'
-
-// Curated from Refactoring UI guidelines to ensure strong semantic presence without overpowering
-const COLOR_PALETTE = [
-  '#C52707', // Red 
-  '#C65D21', // Orange
-  '#A27C1A', // Yellow
-  '#0A6C74', // Cyan
-  '#14919B', // Teal
-  '#0B69A3', // Blue
-  '#2D3A8C', // Indigo/Blue Grey
-  '#7C1A87', // Purple
-  '#AD4BB8', // Light Purple
-  '#486581', // Muted Blue
-  '#572508', // Dark Brown
-  '#102A43', // Darkest Blue
-]
+import { M3_CONTENT_PALETTE, getColorToken } from '../utils/m3Palette'
 
 const DEFAULT_IDS = ['legs', 'pull', 'push']
 
 export default function Categories({ categories, entries, events, onAdd, onDelete }) {
   const usedColors = getUsedColors({ categories, entries, events })
-  const availableColors = COLOR_PALETTE.filter(c => !usedColors.has(c))
+  const availableColors = M3_CONTENT_PALETTE.filter(c => !usedColors.has(c.id))
 
   const [label, setLabel] = useState('')
-  const [selectedColor, setSelectedColor] = useState(null)
+  const [selectedColorId, setSelectedColorId] = useState(null)
   const [error, setError] = useState('')
 
-  const color = selectedColor && availableColors.includes(selectedColor)
-    ? selectedColor
-    : availableColors[0] ?? null
+  const colorId = selectedColorId && availableColors.some(c => c.id === selectedColorId)
+    ? selectedColorId
+    : availableColors[0]?.id ?? null
 
   function handleAdd() {
-    // Validate on submit rather than inline or using disabled buttons
     if (!label.trim()) {
       setError('Please enter a category name.')
       return
     }
-    if (!color) {
+    if (!colorId) {
       setError('Please select a color for your category.')
       return
     }
     
-    // Clear errors and submit
     setError('')
-    onAdd(label.trim(), color)
+    onAdd(label.trim(), colorId)
     setLabel('')
-    setSelectedColor(null)
+    setSelectedColorId(null)
   }
 
   function handleLabelChange(e) {
     setLabel(e.target.value)
-    if (error) setError('') // Clear error when user starts correcting
+    if (error) setError('')
   }
 
   return (
-    <section aria-label="Manage workout categories" className="mb-8">
-      <h2 className="text-lg font-semibold text-slate-900 mb-4">
-        Workout Categories
-      </h2>
+    <section aria-label="Manage workout categories" className="flex flex-col gap-6">
+      <div>
+        <h2 className="text-base font-bold text-[#1E1B4B]">Workout Categories</h2>
+        <p className="text-xs text-[#45464F] mt-0.5">
+          Categories highlight calendar days and organize your training history.
+        </p>
+      </div>
 
-      {/* Existing categories */}
-      <ul className="flex flex-col gap-3 mb-8" aria-label="Category list">
-        {categories.map(cat => (
-          <li
-            key={cat.id}
-            className="flex items-center justify-between bg-white rounded-xl px-4 py-3 shadow-sm border border-slate-200"
-          >
-            <div className="flex items-center gap-3">
-              <span
-                className="w-4 h-4 rounded-full flex-shrink-0 shadow-inner"
-                style={{ backgroundColor: cat.color }}
-                aria-hidden="true"
-              />
-              <span className="text-sm font-medium text-slate-900">{cat.label}</span>
-              {DEFAULT_IDS.includes(cat.id) && (
-                <span className="text-xs text-slate-500 font-normal">(default)</span>
+      {/* Existing Categories List */}
+      <ul className="flex flex-col gap-2.5" aria-label="Category list">
+        {categories.map(cat => {
+          const token = getColorToken(cat.color)
+          const isDefault = DEFAULT_IDS.includes(cat.id)
+
+          return (
+            <li
+              key={cat.id}
+              className="flex items-center justify-between rounded-2xl px-4 py-3 shadow-xs border border-black/5"
+              style={{
+                backgroundColor: token ? token.container : '#EEF2FF',
+                color: token ? token.onContainer : '#1E1B4B',
+              }}
+            >
+              <div className="flex items-center gap-3">
+                <span
+                  className="w-3.5 h-3.5 rounded-full ring-2 ring-white/80 shadow-xs flex-shrink-0"
+                  style={{ backgroundColor: token ? token.accent : cat.color }}
+                  aria-hidden="true"
+                />
+                <span className="text-sm font-bold tracking-tight">{cat.label}</span>
+                {isDefault && (
+                  <span className="text-xs font-medium opacity-70">(default)</span>
+                )}
+              </div>
+
+              {!isDefault && (
+                <button
+                  onClick={() => onDelete(cat.id)}
+                  aria-label={`Delete ${cat.label} category`}
+                  className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-black/10 active:scale-95 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#BA1A1A]"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
               )}
-            </div>
-            {!DEFAULT_IDS.includes(cat.id) && (
-              <button
-                onClick={() => onDelete(cat.id)}
-                aria-label={`Delete ${cat.label} category`}
-                className="text-slate-400 hover:text-red-600 hover:bg-red-50 transition px-2 py-2 rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-red-600"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-            )}
-          </li>
-        ))}
+            </li>
+          )
+        })}
       </ul>
 
-      {/* Add new category */}
+      {/* Add New Category Card */}
       <section aria-labelledby="add-cat-label">
-        <h3
-          id="add-cat-label"
-          className="text-base font-semibold text-slate-900 mb-3"
-        >
-          Add new category
+        <h3 id="add-cat-label" className="text-sm font-bold text-[#1E1B4B] mb-2.5">
+          Create New Category
         </h3>
-        {/* Outer padding (p-5) is strictly greater than inner padding (gap-4) */}
-        <div className="bg-slate-50 rounded-xl p-5 shadow-sm border border-slate-200 flex flex-col gap-4">
-          
-          {/* Error Message rendering above fields */}
+
+        <div className="bg-[#FAF8FF] rounded-3xl p-5 shadow-xs border border-black/5 flex flex-col gap-4">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg text-sm flex items-center gap-2" role="alert">
+            <div
+              className="bg-[#FFDAD6] border border-[#BA1A1A]/20 text-[#410002] px-3.5 py-2.5 rounded-2xl text-xs font-semibold flex items-center gap-2"
+              role="alert"
+            >
               <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
-              {error}
+              <span>{error}</span>
             </div>
           )}
 
+          {/* Name Field */}
           <div className="flex flex-col gap-1.5">
-            <label
-              htmlFor="cat-name"
-              className="text-sm font-medium text-slate-900"
-            >
-              Name <span className="text-red-600" aria-hidden="true">*</span>
+            <label htmlFor="cat-name" className="text-xs font-bold uppercase tracking-wider text-[#45464F]">
+              Category Name <span className="text-[#BA1A1A]" aria-hidden="true">*</span>
             </label>
             <input
               id="cat-name"
               type="text"
               value={label}
               onChange={handleLabelChange}
-              placeholder="e.g. Cardio"
+              placeholder="e.g. Cardio, Chest, Recovery..."
               aria-required="true"
               aria-invalid={error.includes('name')}
-              className="w-full rounded-lg border border-slate-500 p-2 text-base text-slate-900 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-shadow"
+              className="w-full h-12 rounded-2xl border border-[#767680]/30 bg-white px-4 text-sm font-medium text-[#1E1B4B] placeholder-[#767680] focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 shadow-xs transition"
             />
           </div>
 
-          <div className="flex flex-col gap-2">
-            <p className="text-sm font-medium text-slate-900">
-              Color <span className="text-red-600" aria-hidden="true">*</span>
+          {/* Color Selection Palette */}
+          <div className="flex flex-col gap-1.5">
+            <p className="text-xs font-bold uppercase tracking-wider text-[#45464F]">
+              Color Accent <span className="text-[#BA1A1A]" aria-hidden="true">*</span>
             </p>
             {availableColors.length > 0 ? (
               <div
-                className="flex flex-wrap gap-3"
+                className="flex flex-wrap gap-1"
                 role="radiogroup"
                 aria-label="Select category color"
               >
-                {availableColors.map(c => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => {
-                      setSelectedColor(c)
-                      if (error) setError('')
-                    }}
-                    aria-label={`Color ${c}`}
-                    aria-checked={color === c}
-                    role="radio"
-                    className={`w-10 h-10 rounded-full transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-600 ${
-                      color === c ? 'ring-2 ring-offset-2 ring-slate-900 scale-110' : 'hover:scale-105'
-                    }`}
-                    style={{ backgroundColor: c }}
-                  />
-                ))}
+                {availableColors.map(c => {
+                  const isSelected = colorId === c.id
+                  return (
+                    <div key={c.id} className="w-12 h-12 flex items-center justify-center">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedColorId(c.id)
+                          if (error) setError('')
+                        }}
+                        aria-label={`Color ${c.label}`}
+                        aria-checked={isSelected}
+                        role="radio"
+                        className={`w-9 h-9 rounded-full transition-all flex items-center justify-center shadow-xs ${
+                          isSelected
+                            ? 'ring-3 ring-offset-2 ring-[#4F46E5] scale-110'
+                            : 'hover:scale-105 border border-black/10'
+                        }`}
+                        style={{ backgroundColor: c.accent }}
+                      >
+                        {isSelected && (
+                          <svg className="w-4 h-4 text-white drop-shadow-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                  )
+                })}
               </div>
             ) : (
-              <p className="text-sm text-amber-800 bg-amber-100 border border-amber-200 rounded-lg px-4 py-3">
-                Every preset color is currently in use. Delete an existing category to free up a color.
+              <p className="text-xs font-medium text-[#45464F] bg-[#EEF2FF] border border-black/5 rounded-2xl p-3">
+                All preset colors are currently assigned. Delete an existing category to free up its color.
               </p>
             )}
           </div>
 
+          {/* Add Action Button */}
           <button
             onClick={handleAdd}
-            className="w-full mt-2 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-white font-semibold rounded-lg py-2 text-base transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-500/50 shadow-sm"
+            className="w-full h-12 mt-1 bg-[#4F46E5] hover:bg-[#4338CA] active:scale-98 text-white font-bold rounded-full text-sm shadow-sm transition flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#4F46E5]"
           >
             Add Category
           </button>
@@ -1071,16 +1281,19 @@ Categories.propTypes = {
 </file>
 
 <file path="src/components/DayCell.jsx">
+// src/components/DayCell.jsx
 import PropTypes from 'prop-types'
+import { getColorToken } from '../utils/m3Palette'
 
 export default function DayCell({ day, dateKey, isToday, entryColor, events, onClick }) {
-  const hasNote   = Boolean(entryColor)
-  const hasEvents = events.length > 0
+  const colorToken = getColorToken(entryColor)
+  const hasNote    = Boolean(entryColor)
+  const hasEvents  = events.length > 0
 
   const ariaLabel = [
     `${dateKey}`,
     isToday ? "today" : "",
-    hasNote ? "has diary entry" : "",
+    hasNote ? `has diary entry (${colorToken?.label || 'highlighted'})` : "",
     hasEvents ? `${events.length} event(s)` : "",
   ].filter(Boolean).join(", ")
 
@@ -1090,32 +1303,45 @@ export default function DayCell({ day, dateKey, isToday, entryColor, events, onC
       aria-label={ariaLabel}
       className={[
         "relative flex flex-col items-center justify-start",
-        "w-full aspect-square rounded-lg pt-1 pb-1",
-        "bg-white shadow-lg",
-        "text-sm font-medium transition",
-        "focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600",
-        "active:scale-95",
+        "w-full aspect-square rounded-xl pt-1.5 pb-1",
+        "transition-all duration-150",
+        "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B] focus-visible:z-10",
+        "active:scale-95 shadow-sm",
+        // Default Luminous Frost cell (#EEF2FF) with Deep Midnight text (#1E1B4B)
+        colorToken
+          ? "border border-black/10"
+          : "bg-[#EEF2FF] text-[#1E1B4B] hover:bg-white border border-white/60",
         isToday
-          ? "ring-2 ring-indigo-600 text-indigo-700 font-bold"
-          : "text-slate-800 hover:bg-slate-50",
+          ? "ring-2 ring-[#1E1B4B] font-bold"
+          : "font-medium",
       ].join(" ")}
-      style={entryColor ? { backgroundColor: entryColor } : {}}
+      style={
+        colorToken
+          ? {
+              backgroundColor: colorToken.container,
+              color: colorToken.onContainer,
+            }
+          : undefined
+      }
     >
-      <span>{day}</span>
+      <span className="text-sm leading-tight select-none">{day}</span>
 
       {/* Event dots */}
       {hasEvents && (
         <div
-          className="flex gap-0.5 mt-0.5 flex-wrap justify-center"
+          className="flex gap-1 mt-1 flex-wrap justify-center px-0.5"
           aria-hidden="true"
         >
-          {events.slice(0, 3).map(event => (
-            <span
-              key={event.id}
-              className="w-1.5 h-1.5 rounded-full"
-              style={{ backgroundColor: event.color }}
-            />
-          ))}
+          {events.slice(0, 3).map(event => {
+            const eventToken = getColorToken(event.color)
+            return (
+              <span
+                key={event.id}
+                className="w-1.5 h-1.5 rounded-full ring-1 ring-white/80"
+                style={{ backgroundColor: eventToken ? eventToken.accent : event.color }}
+              />
+            )
+          })}
         </div>
       )}
     </button>
@@ -1142,58 +1368,42 @@ DayCell.defaultProps = {
 </file>
 
 <file path="src/components/DiaryEntry.jsx">
+// src/components/DiaryEntry.jsx
 import { useState } from 'react'
 import PropTypes from 'prop-types'
 import { getUsedColors } from '../utils/colorUsage'
-
-const ENTRY_COLORS = [
-  { label: 'None',   value: null,      bg: 'bg-white border-2 border-gray-300' },
-  { label: 'Yellow', value: '#fde68a', bg: 'bg-yellow-200' },
-  { label: 'Green',  value: '#bbf7d0', bg: 'bg-green-200' },
-  { label: 'Blue',   value: '#bfdbfe', bg: 'bg-blue-200' },
-  { label: 'Pink',   value: '#fbcfe8', bg: 'bg-pink-200' },
-  { label: 'Purple', value: '#e9d5ff', bg: 'bg-purple-200' },
-  { label: 'Orange', value: '#fed7aa', bg: 'bg-orange-200' },
-]
-
-const EVENT_COLORS = [
-  { label: 'Red',    value: '#f87171' },
-  { label: 'Orange', value: '#fbbf24' },
-  { label: 'Yellow', value: '#facc15' },
-  { label: 'Green',  value: '#4ade80' },
-  { label: 'Teal',   value: '#2dd4bf' },
-  { label: 'Cyan',   value: '#22d3ee' },
-  { label: 'Blue',   value: '#60a5fa' },
-  { label: 'Indigo', value: '#818cf8' },
-  { label: 'Purple', value: '#a78bfa' },
-  { label: 'Pink',   value: '#f472b6' },
-]
+import { M3_CONTENT_PALETTE, getColorToken } from '../utils/m3Palette'
 
 export default function DiaryEntry({
   dateKey, entry, entries, events, categories,
   onSave, onDelete, onAddEvent, onDeleteEvent, onClose
 }) {
-  const [note,               setNote]               = useState(entry?.note     || '')
-  const [color,               setColor]              = useState(entry?.color    || null)
+  const existingColorToken = getColorToken(entry?.color)
+
+  const [note,               setNote]               = useState(entry?.note || '')
+  const [colorId,            setColorId]            = useState(existingColorToken?.id || null)
   const [category,            setCategory]           = useState(entry?.category || null)
   const [eventTitle,          setEventTitle]         = useState('')
-  const [selectedEventColor,  setSelectedEventColor] = useState(null)
+  const [selectedEventColorId, setSelectedEventColorId] = useState(null)
 
   const dayEvents = events.filter(e => e.date === dateKey)
 
-  // Colors already claimed by a category, a manually-highlighted note, or an
-  // event elsewhere in the app. This entry's own saved color is excluded so
-  // it doesn't vanish from the list while you're still editing it.
+  // Exclude this date's own color so it remains selectable while editing
   const usedColors = getUsedColors({ categories, entries, events, excludeDateKey: dateKey })
 
-  const availableEntryColors = ENTRY_COLORS.filter(
-    c => c.value === null || !usedColors.has(c.value)
+  // Available M3 colors for manual highlight
+  const availableEntryColors = M3_CONTENT_PALETTE.filter(
+    c => c.id === colorId || !usedColors.has(c.id)
   )
-  const availableEventColors = EVENT_COLORS.filter(c => !usedColors.has(c.value))
 
-  const eventColor = selectedEventColor && availableEventColors.some(c => c.value === selectedEventColor)
-    ? selectedEventColor
-    : availableEventColors[0]?.value ?? null
+  // Available M3 colors for events
+  const availableEventColors = M3_CONTENT_PALETTE.filter(
+    c => !usedColors.has(c.id)
+  )
+
+  const eventColorId = selectedEventColorId && availableEventColors.some(c => c.id === selectedEventColorId)
+    ? selectedEventColorId
+    : availableEventColors[0]?.id ?? null
 
   const formattedDate = new Date(dateKey + 'T00:00:00').toLocaleDateString('default', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
@@ -1202,16 +1412,17 @@ export default function DiaryEntry({
   function handleCategoryChange(val) {
     if (!val) {
       setCategory(null)
-      setColor(null)
+      setColorId(null)
     } else {
       const cat = categories.find(c => c.id === val)
       setCategory(val)
-      setColor(cat.color)
+      const catToken = getColorToken(cat.color)
+      setColorId(catToken?.id || cat.color)
     }
   }
 
   function handleSave() {
-    onSave(dateKey, note, color, category)
+    onSave(dateKey, note, colorId, category)
     onClose()
   }
 
@@ -1221,50 +1432,59 @@ export default function DiaryEntry({
   }
 
   function handleAddEvent() {
-    if (!eventTitle.trim() || !eventColor) return
-    onAddEvent(dateKey, eventTitle.trim(), eventColor)
+    if (!eventTitle.trim() || !eventColorId) return
+    onAddEvent(dateKey, eventTitle.trim(), eventColorId)
     setEventTitle('')
-    setSelectedEventColor(null)
+    setSelectedEventColorId(null)
   }
+
+  const activeCategory = categories.find(c => c.id === category)
+  const activeCatToken = activeCategory ? getColorToken(activeCategory.color) : null
 
   return (
     <div
       role="dialog"
       aria-modal="true"
       aria-label={`Diary entry for ${formattedDate}`}
-      className="fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center z-50 p-2 sm:p-4"
     >
-      <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-xl">
+      {/* M3 Modal Bottom Sheet */}
+      <div className="bg-[#FAF8FF] rounded-3xl w-full max-w-md max-h-[92vh] overflow-y-auto shadow-2xl border border-black/5 flex flex-col">
 
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-100">
-          <h2 className="text-base font-semibold text-gray-800">{formattedDate}</h2>
+        {/* Top Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-black/5 sticky top-0 bg-[#FAF8FF]/90 backdrop-blur-md z-10">
+          <div>
+            <h2 className="text-base font-bold text-[#1E1B4B] tracking-tight">{formattedDate}</h2>
+            <p className="text-xs font-medium text-[#45464F]">Note &amp; Highlights</p>
+          </div>
           <button
             onClick={onClose}
-            aria-label="Close diary entry"
-            className="p-2 rounded-full hover:bg-gray-100 active:bg-gray-200 transition text-gray-500"
+            aria-label="Close dialog"
+            className="w-12 h-12 flex items-center justify-center rounded-full text-[#1E1B4B] hover:bg-black/5 active:bg-black/10 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4F46E5]"
           >
-            ✕
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
 
-        <div className="p-4 flex flex-col gap-5">
+        <div className="p-5 flex flex-col gap-6">
 
-          {/* Workout category dropdown */}
-          <section aria-labelledby="category-label">
+          {/* Workout Category Selector */}
+          <section aria-labelledby="category-label" className="flex flex-col gap-2">
             <label
               id="category-label"
               htmlFor="workout-category"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="text-xs font-bold uppercase tracking-wider text-[#45464F]"
             >
-              Workout type
+              Workout Category
             </label>
             <div className="relative">
               <select
                 id="workout-category"
                 value={category || ''}
                 onChange={e => handleCategoryChange(e.target.value || null)}
-                className="w-full rounded-xl border border-gray-300 p-2.5 text-sm bg-white appearance-none focus:outline-none focus:ring-2 focus:ring-blue-500 pr-8"
+                className="w-full h-12 rounded-2xl border border-[#767680]/30 bg-white px-4 text-sm font-medium text-[#1E1B4B] appearance-none focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 shadow-xs transition"
               >
                 <option value="">— None —</option>
                 {categories.map(c => (
@@ -1272,60 +1492,89 @@ export default function DiaryEntry({
                 ))}
               </select>
               <span
-                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-[#45464F] text-xs font-bold"
                 aria-hidden="true"
               >
-                ▾
+                ▼
               </span>
             </div>
-            {category && (
-              <p className="mt-1.5 text-xs text-gray-500 flex items-center gap-1.5">
+            {activeCatToken && (
+              <div
+                className="mt-1 flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold"
+                style={{ backgroundColor: activeCatToken.container, color: activeCatToken.onContainer }}
+              >
                 <span
-                  className="inline-block w-3 h-3 rounded-full"
-                  style={{ backgroundColor: color }}
+                  className="w-2.5 h-2.5 rounded-full"
+                  style={{ backgroundColor: activeCatToken.accent }}
                   aria-hidden="true"
                 />
-                Day will be highlighted in{' '}
-                {categories.find(c => c.id === category)?.label} color
-              </p>
+                <span>Highlighted in {activeCategory.label} ({activeCatToken.label})</span>
+              </div>
             )}
           </section>
 
-          {/* Manual highlight — hidden when category is selected */}
+          {/* Manual Highlight Palette — Hidden when Category is active */}
           {!category && (
-            <section aria-labelledby="color-label">
-              <p id="color-label" className="text-sm font-medium text-gray-700 mb-2">
-                Highlight color
+            <section aria-labelledby="color-label" className="flex flex-col gap-2">
+              <p id="color-label" className="text-xs font-bold uppercase tracking-wider text-[#45464F]">
+                Highlight Color
               </p>
-              <div className="flex gap-2 flex-wrap" role="group" aria-labelledby="color-label">
-                {availableEntryColors.map(c => (
+              <div className="flex gap-1 flex-wrap" role="radiogroup" aria-labelledby="color-label">
+                {/* None Option */}
+                <div className="w-12 h-12 flex items-center justify-center">
                   <button
-                    key={c.label}
-                    onClick={() => setColor(c.value)}
-                    aria-label={`${c.label} highlight${color === c.value ? ', selected' : ''}`}
-                    aria-pressed={color === c.value}
-                    className={[
-                      'w-8 h-8 rounded-full transition',
-                      c.bg,
-                      color === c.value ? 'ring-2 ring-offset-2 ring-blue-500 scale-110' : '',
-                    ].join(' ')}
-                  />
-                ))}
+                    type="button"
+                    onClick={() => setColorId(null)}
+                    aria-label="No highlight"
+                    role="radio"
+                    aria-checked={colorId === null}
+                    className={`w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all ${
+                      colorId === null
+                        ? 'border-[#4F46E5] bg-white ring-2 ring-[#4F46E5]/30 scale-105'
+                        : 'border-dashed border-[#767680] bg-transparent hover:scale-105'
+                    }`}
+                  >
+                    <span className="text-xs font-bold text-[#45464F] leading-none">✕</span>
+                  </button>
+                </div>
+
+                {/* Available M3 Swatches */}
+                {availableEntryColors.map(c => {
+                  const isSelected = colorId === c.id
+                  return (
+                    <div key={c.id} className="w-12 h-12 flex items-center justify-center">
+                      <button
+                        type="button"
+                        onClick={() => setColorId(c.id)}
+                        aria-label={`${c.label} highlight`}
+                        role="radio"
+                        aria-checked={isSelected}
+                        className={`w-9 h-9 rounded-full transition-all flex items-center justify-center shadow-xs ${
+                          isSelected
+                            ? 'ring-3 ring-offset-2 ring-[#4F46E5] scale-110'
+                            : 'hover:scale-105 border border-black/10'
+                        }`}
+                        style={{ backgroundColor: c.accent }}
+                      >
+                        {isSelected && (
+                          <svg className="w-4 h-4 text-white drop-shadow-xs" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </button>
+                    </div>
+                  )
+                })}
               </div>
-              {availableEntryColors.length === 1 && (
-                <p className="mt-2 text-xs text-amber-600">
-                  Every highlight color is already used by a category, note, or event. Pick a workout type above, or free up a color elsewhere.
-                </p>
-              )}
             </section>
           )}
 
-          {/* Notes */}
-          <section aria-labelledby="notes-label">
+          {/* Notes Input */}
+          <section aria-labelledby="notes-label" className="flex flex-col gap-2">
             <label
               id="notes-label"
               htmlFor="diary-note"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="text-xs font-bold uppercase tracking-wider text-[#45464F]"
             >
               Notes
             </label>
@@ -1333,96 +1582,128 @@ export default function DiaryEntry({
               id="diary-note"
               value={note}
               onChange={e => setNote(e.target.value)}
-              placeholder="Write about your day..."
+              placeholder="What happened today?..."
               rows={4}
-              className="w-full rounded-xl border border-gray-300 p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full rounded-2xl border border-[#767680]/30 bg-white p-3.5 text-sm font-medium text-[#1E1B4B] placeholder-[#767680] resize-none focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 shadow-xs transition"
             />
           </section>
 
-          {/* Save / Delete */}
-          <div className="flex gap-2">
+          {/* Main Actions (M3 Filled + Error Buttons) */}
+          <div className="flex gap-3 pt-1">
             <button
               onClick={handleSave}
-              className="flex-1 bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-white font-medium rounded-xl py-2.5 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-700"
+              className="flex-1 h-12 bg-[#4F46E5] hover:bg-[#4338CA] active:scale-98 text-white font-bold rounded-full text-sm shadow-sm transition flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#4F46E5]"
             >
-              Save
+              Save Entry
             </button>
             {entry && (
               <button
                 onClick={handleDelete}
                 aria-label="Delete this diary entry"
-                className="px-4 bg-red-100 hover:bg-red-200 active:bg-red-300 text-red-600 font-medium rounded-xl transition focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                className="h-12 px-6 bg-[#FFDAD6] hover:bg-[#FFB4AB] active:scale-98 text-[#410002] font-bold rounded-full text-sm transition flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#BA1A1A]"
               >
                 Delete
               </button>
             )}
           </div>
 
-          {/* Events */}
-          <section aria-labelledby="events-label">
-            <h3 id="events-label" className="text-sm font-medium text-gray-700 mb-2">
-              Events
-            </h3>
+          {/* Event Tags Section */}
+          <section aria-labelledby="events-label" className="border-t border-black/5 pt-5 flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <h3 id="events-label" className="text-xs font-bold uppercase tracking-wider text-[#45464F]">
+                Events &amp; Tags
+              </h3>
+              <span className="text-xs font-semibold text-[#45464F]">
+                {dayEvents.length} {dayEvents.length === 1 ? 'event' : 'events'}
+              </span>
+            </div>
+
             {dayEvents.length > 0 && (
-              <ul aria-label="Events for this day" className="flex flex-col gap-2 mb-3">
-                {dayEvents.map(event => (
-                  <li
-                    key={event.id}
-                    className="flex items-center justify-between bg-gray-50 rounded-xl px-3 py-2"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="w-3 h-3 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: event.color }}
-                        aria-hidden="true"
-                      />
-                      <span className="text-sm text-gray-800">{event.title}</span>
-                    </div>
-                    <button
-                      onClick={() => onDeleteEvent(event.id)}
-                      aria-label={`Delete event: ${event.title}`}
-                      className="text-gray-400 hover:text-red-500 transition text-xs px-2 py-1 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+              <ul aria-label="Events for this day" className="flex flex-col gap-2">
+                {dayEvents.map(event => {
+                  const evToken = getColorToken(event.color)
+                  return (
+                    <li
+                      key={event.id}
+                      className="flex items-center justify-between rounded-2xl px-4 py-2 border border-black/5 shadow-xs transition"
+                      style={{
+                        backgroundColor: evToken ? evToken.container : '#EEF2FF',
+                        color: evToken ? evToken.onContainer : '#1E1B4B',
+                      }}
                     >
-                      ✕
-                    </button>
-                  </li>
-                ))}
+                      <div className="flex items-center gap-2.5">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full ring-1 ring-white"
+                          style={{ backgroundColor: evToken ? evToken.accent : event.color }}
+                          aria-hidden="true"
+                        />
+                        <span className="text-sm font-semibold">{event.title}</span>
+                      </div>
+                      <button
+                        onClick={() => onDeleteEvent(event.id)}
+                        aria-label={`Delete event: ${event.title}`}
+                        className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-black/10 active:scale-95 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#BA1A1A]"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </li>
+                  )
+                })}
               </ul>
             )}
-            <div className="flex flex-col gap-2">
+
+            {/* Add Event Input & Palette */}
+            <div className="flex flex-col gap-3 bg-white p-3.5 rounded-2xl border border-black/5 shadow-xs">
               <input
                 type="text"
                 value={eventTitle}
                 onChange={e => setEventTitle(e.target.value)}
                 placeholder="New event title..."
                 aria-label="New event title"
-                className="w-full rounded-xl border border-gray-300 p-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full h-11 rounded-xl border border-[#767680]/30 px-3.5 text-sm font-medium text-[#1E1B4B] focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20"
               />
+
               {availableEventColors.length > 0 ? (
-                <div className="flex gap-2 items-center flex-wrap" role="group" aria-label="Event color">
-                  {availableEventColors.map(c => (
-                    <button
-                      key={c.label}
-                      onClick={() => setSelectedEventColor(c.value)}
-                      aria-label={`${c.label} event color${eventColor === c.value ? ', selected' : ''}`}
-                      aria-pressed={eventColor === c.value}
-                      className={[
-                        'w-7 h-7 rounded-full transition',
-                        eventColor === c.value ? 'ring-2 ring-offset-2 ring-blue-500 scale-110' : '',
-                      ].join(' ')}
-                      style={{ backgroundColor: c.value }}
-                    />
-                  ))}
+                <div className="flex gap-1 flex-wrap" role="radiogroup" aria-label="Event color selector">
+                  {availableEventColors.map(c => {
+                    const isSelected = eventColorId === c.id
+                    return (
+                      <div key={c.id} className="w-10 h-10 flex items-center justify-center">
+                        <button
+                          type="button"
+                          onClick={() => setSelectedEventColorId(c.id)}
+                          aria-label={`${c.label} event color`}
+                          role="radio"
+                          aria-checked={isSelected}
+                          className={`w-7 h-7 rounded-full transition-all flex items-center justify-center shadow-xs ${
+                            isSelected
+                              ? 'ring-2 ring-offset-2 ring-[#4F46E5] scale-110'
+                              : 'hover:scale-105 border border-black/10'
+                          }`}
+                          style={{ backgroundColor: c.accent }}
+                        >
+                          {isSelected && (
+                            <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+                    )
+                  })}
                 </div>
               ) : (
-                <p className="text-xs text-amber-600">
-                  Every event color is already in use. Delete a category, note highlight, or event to free one up.
+                <p className="text-xs font-medium text-[#BA1A1A]">
+                  All event colors are currently claimed.
                 </p>
               )}
+
               <button
                 onClick={handleAddEvent}
-                disabled={!eventTitle.trim() || !eventColor}
-                className="w-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 disabled:opacity-40 disabled:cursor-not-allowed text-gray-700 font-medium rounded-xl py-2 text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                disabled={!eventTitle.trim() || !eventColorId}
+                className="w-full h-11 bg-[#EEF2FF] hover:bg-[#C7D2FE] active:scale-98 disabled:opacity-40 disabled:cursor-not-allowed text-[#1E1B4B] font-bold rounded-xl text-sm transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4F46E5]"
               >
                 + Add Event
               </button>
@@ -1477,9 +1758,11 @@ DiaryEntry.defaultProps = {
 </file>
 
 <file path="src/components/History.jsx">
+// src/components/History.jsx
 import { useState } from 'react'
 import PropTypes from 'prop-types'
 import { truncateNote } from '../utils/notePreview'
+import { getColorToken } from '../utils/m3Palette'
 
 function formatDate(dateKey) {
   return new Date(dateKey + 'T00:00:00').toLocaleDateString('default', {
@@ -1496,49 +1779,75 @@ function daysBetween(dateKeyA, dateKeyB) {
 export default function History({ entries, categories, onSelectDate }) {
   const [categoryId, setCategoryId] = useState(categories[0]?.id || '')
 
-  const cat = categories.find(c => c.id === categoryId)
+  const activeCategory = categories.find(c => c.id === categoryId)
+  const activeToken = activeCategory ? getColorToken(activeCategory.color) : null
 
   const filtered = Object.entries(entries)
     .filter(([, entry]) => entry.category === categoryId)
     .sort(([a], [b]) => b.localeCompare(a))
 
   return (
-    <section aria-label="Workout history">
+    <section aria-label="Workout history" className="flex flex-col">
 
-      {/* Category tabs */}
-      <div role="tablist" aria-label="Workout category" className="flex gap-2 mb-4 flex-wrap">
-        {categories.map(c => (
-          <button
-            key={c.id}
-            role="tab"
-            aria-selected={categoryId === c.id}
-            onClick={() => setCategoryId(c.id)}
-            className={[
-              'flex-1 py-2 rounded-xl text-sm font-medium shadow-md transition min-w-[4rem]',
-              categoryId === c.id
-                ? 'ring-1 ring-blue-500 '
-                : 'bg-gray-100 hover:bg-gray-200 text-gray-600',
-            ].join(' ')}
-            style={categoryId === c.id ? { backgroundColor: c.color } : {}}
-          >
-            {c.label}
-          </button>
-        ))}
+      {/* M3 Filter Chips Carousel with Bleed Padding (No Border Clipping) */}
+      <div
+        role="tablist"
+        aria-label="Workout categories"
+        className="-mx-4 px-4 flex gap-2.5 mb-3 overflow-x-auto no-scrollbar py-2 items-center"
+      >
+        {categories.map(c => {
+          const isSelected = categoryId === c.id
+          const token = getColorToken(c.color)
+
+          return (
+            <button
+              key={c.id}
+              role="tab"
+              aria-selected={isSelected}
+              onClick={() => setCategoryId(c.id)}
+              className={`flex-shrink-0 h-12 min-w-[5.5rem] px-4 rounded-2xl text-xs font-bold tracking-wide transition-all duration-150 flex items-center justify-center gap-2 shadow-xs border focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B] active:scale-95 ${
+                isSelected
+                  ? 'border-black/15 shadow-sm ring-2 ring-[#1E1B4B]/20'
+                  : 'bg-[#EEF2FF] text-[#1E1B4B] border-black/5 hover:bg-white'
+              }`}
+              style={
+                isSelected && token
+                  ? {
+                      backgroundColor: token.container,
+                      color: token.onContainer,
+                    }
+                  : undefined
+              }
+            >
+              <span
+                className="w-2.5 h-2.5 rounded-full ring-1 ring-white/80 shadow-xs flex-shrink-0"
+                style={{ backgroundColor: token ? token.accent : c.color }}
+                aria-hidden="true"
+              />
+              <span>{c.label}</span>
+            </button>
+          )
+        })}
       </div>
 
-      {/* Count */}
-      <p className="text-xs text-gray-500 mb-3" aria-live="polite">
+      {/* Counter Label */}
+      <p className="text-xs font-bold text-[#1E1B4B] mb-3 select-none" aria-live="polite">
         {filtered.length} {filtered.length === 1 ? 'entry' : 'entries'} found
       </p>
 
-      {/* Empty state */}
+      {/* Empty State with Vector SVG Icon */}
       {filtered.length === 0 ? (
-        <div className="text-center py-12 text-gray-600">
-          <p className="text-4xl mb-2" aria-hidden="true">📭</p>
-          <p className="text-sm">No {cat?.label} entries yet</p>
+        <div className="bg-[#FAF8FF] rounded-3xl p-8 text-center border border-black/5 shadow-xs flex flex-col items-center justify-center gap-2">
+          <div className="w-14 h-14 rounded-full bg-[#C7D2FE]/30 text-[#4F46E5] flex items-center justify-center mb-1">
+            <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+          </div>
+          <p className="text-sm font-bold text-[#1E1B4B]">No {activeCategory?.label || 'workout'} entries yet</p>
+          <p className="text-xs text-[#45464F]">Select dates on the calendar to log this workout.</p>
         </div>
       ) : (
-        <ul className="flex flex-col gap-3" aria-label={`${cat?.label} entries`}>
+        <ul className="flex flex-col gap-3" aria-label={`${activeCategory?.label} entries`}>
           {filtered.map(([dateKey, entry], index) => {
             const previousDateKey = index + 1 < filtered.length ? filtered[index + 1][0] : null
             const daysSincePrevious = previousDateKey ? daysBetween(dateKey, previousDateKey) : null
@@ -1548,35 +1857,41 @@ export default function History({ entries, categories, onSelectDate }) {
               <li key={dateKey}>
                 <button
                   onClick={() => onSelectDate(dateKey)}
-                  aria-label={`Open entry for ${formatDate(dateKey)}${daysSincePrevious !== null ? `, ${daysSincePrevious} day${daysSincePrevious === 1 ? '' : 's'} since the previous ${cat?.label} entry` : ''}${noteTruncated ? ', note truncated, open to read the full entry' : ''}`}
-                  className="w-full text-left bg-white rounded-xl p-3 shadow-sm border border-gray-100 hover:border-blue-300 active:bg-gray-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  aria-label={`Open entry for ${formatDate(dateKey)}${daysSincePrevious !== null ? `, ${daysSincePrevious} day${daysSincePrevious === 1 ? '' : 's'} since previous entry` : ''}`}
+                  className="w-full text-left bg-[#EEF2FF] hover:bg-white active:scale-98 rounded-2xl p-4 shadow-sm border border-black/5 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B]"
                 >
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
+                  {/* Card Header: Category Badge + Date + Interval */}
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
                     <span
-                      className="w-3 h-3 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: cat?.color }}
+                      className="w-2.5 h-2.5 rounded-full ring-1 ring-white/80 flex-shrink-0"
+                      style={{ backgroundColor: activeToken ? activeToken.accent : activeCategory?.color }}
                       aria-hidden="true"
                     />
-                    <time dateTime={dateKey} className="text-xs font-medium text-gray-500">
+                    <time dateTime={dateKey} className="text-xs font-bold text-[#1E1B4B]">
                       {formatDate(dateKey)}
                     </time>
                     {daysSincePrevious !== null && (
-                      <span className="text-xs text-gray-600" aria-hidden="true">
-              · {daysSincePrevious} {daysSincePrevious === 1 ? 'day' : 'days'} since last
-            </span>
+                      <span className="text-xs font-semibold text-[#45464F]">
+                        &middot; {daysSincePrevious} {daysSincePrevious === 1 ? 'day' : 'days'} since last
+                      </span>
                     )}
+                    
                   </div>
+
+                  {/* Note Preview */}
                   {entry.note ? (
-                    <div className="ml-5">
-                      <p className="text-sm text-gray-700 whitespace-pre-line">{notePreview}</p>
+                    <div className="pl-4 border-l-2 border-[#1E1B4B]/20">
+                      <p className="text-sm font-medium text-[#1E1B4B] whitespace-pre-line leading-relaxed">
+                        {notePreview}
+                      </p>
                       {noteTruncated && (
-                        <span className="text-xs text-blue-600 font-medium" aria-hidden="true">
-                          Read more
+                        <span className="inline-block mt-1 text-xs font-bold text-[#4F46E5]">
+                          Read full entry 
                         </span>
                       )}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-600 italic ml-5">No notes</p>
+                    <p className="text-xs font-medium text-[#45464F] italic pl-4">No notes logged for this day</p>
                   )}
                 </button>
               </li>
@@ -1609,9 +1924,11 @@ History.propTypes = {
 </file>
 
 <file path="src/components/Search.jsx">
+// src/components/Search.jsx
 import { useState, useMemo, useRef, useEffect } from 'react'
 import PropTypes from 'prop-types'
 import { truncateNote } from '../utils/notePreview'
+import { getColorToken } from '../utils/m3Palette'
 
 function formatDate(dateKey) {
   return new Date(dateKey + 'T00:00:00').toLocaleDateString('default', {
@@ -1619,12 +1936,13 @@ function formatDate(dateKey) {
   })
 }
 
+// M3 High-Contrast Highlight Token (Amber Container #FFE08B + On-Amber #241A00)
 function highlight(text, query) {
   if (!query) return text
   const parts = text.split(new RegExp(`(${query})`, 'gi'))
   return parts.map((part, i) =>
     part.toLowerCase() === query.toLowerCase()
-      ? <mark key={i} className="bg-yellow-200 rounded px-0.5">{part}</mark>
+      ? <mark key={i} className="bg-[#FFE08B] text-[#241A00] font-bold rounded-sm px-1">{part}</mark>
       : part
   )
 }
@@ -1632,7 +1950,10 @@ function highlight(text, query) {
 export default function Search({ entries, events, categories, onSelectDate }) {
   const [query, setQuery] = useState('')
   const inputRef = useRef(null)
-  useEffect(() => { inputRef.current?.focus() }, [])
+
+  useEffect(() => {
+    inputRef.current?.focus()
+  }, [])
 
   const trimmed = query.trim().toLowerCase()
 
@@ -1660,124 +1981,142 @@ export default function Search({ entries, events, categories, onSelectDate }) {
       }
     })
 
-    return Object.entries(matched)
-      .sort(([a], [b]) => b.localeCompare(a))
+    return Object.entries(matched).sort(([a], [b]) => b.localeCompare(a))
   }, [trimmed, entries, events])
 
   return (
-    <section aria-label="Search diary">
+    <section aria-label="Search diary" className="flex flex-col">
 
-      {/* Search input */}
+      {/* M3 Search Bar Container */}
       <div className="relative mb-4">
-        <span
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-          aria-hidden="true"
-        >
-          🔍
-        </span>
+        {/* Search Icon */}
+        <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#45464F]">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" strokeWidth="2" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </div>
+
         <input
+          ref={inputRef}
           type="search"
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder="Search notes and events..."
+          placeholder="Search notes, tags, and events..."
           aria-label="Search notes and events"
-          ref={inputRef}
-          className="w-full rounded-xl border border-gray-300 pl-9 pr-9 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full h-14 pl-12 pr-12 rounded-full border border-black/10 bg-[#EEF2FF] text-[#1E1B4B] text-md  placeholder-[#45464F] shadow-sm focus:outline-none focus:border-[#4F46E5] focus:ring-2 focus:ring-[#4F46E5]/20 focus:bg-white transition"
         />
+
+        {/* Clear Search Button (48x48dp touch target) */}
         {query && (
           <button
             onClick={() => setQuery('')}
-            aria-label="Clear search"
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-800 transition"
+            aria-label="Clear search text"
+            className="absolute right-1 top-1/2 -translate-y-1/2 w-11 h-11 flex items-center justify-center rounded-full text-[#1E1B4B] hover:bg-black/5 active:scale-95 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4F46E5]"
           >
-            ✕
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         )}
       </div>
 
-      {/* Results count */}
+      {/* Results Count */}
       {trimmed && (
-        <p className="text-xs text-gray-500 mb-3" aria-live="polite" aria-atomic="true">
+        <p className="text-xs font-bold text-[#1E1B4B] mb-3 select-none" aria-live="polite" aria-atomic="true">
           {results.length} {results.length === 1 ? 'result' : 'results'} for &ldquo;{query.trim()}&rdquo;
         </p>
       )}
 
-      {/* Empty states */}
+      {/* Initial Empty State */}
       {!trimmed && (
-        <div className="text-center py-12 text-gray-600">
-          <p className="text-4xl mb-2" aria-hidden="true">🔍</p>
-          <p className="text-sm">Start typing to search your diary</p>
+        <div className="bg-[#FAF8FF] rounded-3xl p-8 text-center border border-black/5 shadow-xs flex flex-col items-center justify-center gap-2">
+          <div className="w-12 h-12 rounded-full bg-[#EEF2FF] flex items-center justify-center text-xl text-[#45464F]">
+            🔍
+          </div>
+          <p className="text-sm font-bold text-[#1E1B4B]">Search Your Diary</p>
+          <p className="text-xs text-[#45464F]">Type keywords to find entries, categories, or events.</p>
         </div>
       )}
 
+      {/* No Results Found */}
       {trimmed && results.length === 0 && (
-        <div className="text-center py-12 text-gray-600">
-          <p className="text-4xl mb-2" aria-hidden="true">📭</p>
-          <p className="text-sm">No results found</p>
+        <div className="bg-[#FAF8FF] rounded-3xl p-8 text-center border border-black/5 shadow-xs flex flex-col items-center justify-center gap-2">
+          <div className="w-12 h-12 rounded-full bg-[#EEF2FF] flex items-center justify-center text-xl text-[#45464F]">
+            📭
+          </div>
+          <p className="text-sm font-bold text-[#1E1B4B]">No results found</p>
+          <p className="text-xs text-[#45464F]">Try checking for typos or searching a different term.</p>
         </div>
       )}
 
-      {/* Results */}
+      {/* Results List */}
       {results.length > 0 && (
         <ul className="flex flex-col gap-3" aria-label="Search results">
           {results.map(([dateKey, entry]) => {
             const cat = categories.find(c => c.id === entry?.category)
+            const catToken = cat ? getColorToken(cat.color) : null
             const { text: notePreview, truncated: noteTruncated } = truncateNote(entry?.note)
 
             return (
               <li key={dateKey}>
                 <button
                   onClick={() => onSelectDate(dateKey)}
-                  aria-label={`Open entry for ${formatDate(dateKey)}${noteTruncated ? ', note truncated, open to read the full entry' : ''}`}
-                  className="w-full text-left bg-white rounded-xl p-3 shadow-sm border border-gray-100 hover:border-blue-300 active:bg-gray-50 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  aria-label={`Open entry for ${formatDate(dateKey)}`}
+                  className="w-full text-left bg-[#EEF2FF] hover:bg-white active:scale-98 rounded-2xl p-4 shadow-sm border border-black/5 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B]"
                 >
-                  {/* Date + category */}
-                  <div className="flex items-center gap-2 mb-1">
-                    {cat && (
+                  {/* Card Header */}
+                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                    {catToken && (
                       <span
-                        className="w-3 h-3 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: cat.color }}
+                        className="w-2.5 h-2.5 rounded-full ring-1 ring-white flex-shrink-0"
+                        style={{ backgroundColor: catToken.accent }}
                         aria-hidden="true"
                       />
                     )}
-                    <time dateTime={dateKey} className="text-xs font-medium text-gray-600">
+                    <time dateTime={dateKey} className="text-xs font-bold text-[#1E1B4B]">
                       {formatDate(dateKey)}
                     </time>
                     {cat && (
-                      <span className="text-xs text-gray-600">· {cat.label}</span>
+                      <span className="text-xs font-semibold text-[#45464F]">
+                        &middot; {cat.label}
+                      </span>
                     )}
                   </div>
 
-                  {/* Note with highlighted match */}
+                  {/* Highlighted Note Text */}
                   {entry?.note && (
-                    <div className="ml-5">
-                      <p className="text-sm text-gray-700 whitespace-pre-line">
+                    <div className="pl-4 border-l-2 border-[#1E1B4B]/20 mb-2">
+                      <p className="text-sm font-medium text-[#1E1B4B] whitespace-pre-line leading-relaxed">
                         {highlight(notePreview, query.trim())}
                       </p>
                       {noteTruncated && (
-                        <span className="text-xs text-blue-600 font-medium" aria-hidden="true">
-                          Read more
+                        <span className="inline-block mt-1 text-xs font-bold text-[#4F46E5]">
+                          Read full entry →
                         </span>
                       )}
                     </div>
                   )}
 
-                  {/* Matched events */}
+                  {/* Matched Events */}
                   {entry?.matchedEvents?.length > 0 && (
-                    <ul className="mt-1.5 ml-5 flex flex-col gap-1" aria-label="Matched events">
-                      {entry.matchedEvents.map(event => (
-                        <li
-                          key={event.id}
-                          className="flex items-center gap-1.5 text-xs text-gray-500"
-                        >
-                          <span
-                            className="w-2 h-2 rounded-full flex-shrink-0"
-                            style={{ backgroundColor: event.color }}
-                            aria-hidden="true"
-                          />
-                          {highlight(event.title, query.trim())}
-                        </li>
-                      ))}
+                    <ul className="pl-4 flex flex-col gap-1.5" aria-label="Matched events">
+                      {entry.matchedEvents.map(event => {
+                        const evToken = getColorToken(event.color)
+                        return (
+                          <li
+                            key={event.id}
+                            className="flex items-center gap-2 text-xs font-semibold text-[#45464F]"
+                          >
+                            <span
+                              className="w-2 h-2 rounded-full ring-1 ring-white"
+                              style={{ backgroundColor: evToken ? evToken.accent : event.color }}
+                              aria-hidden="true"
+                            />
+                            <span>{highlight(event.title, query.trim())}</span>
+                          </li>
+                        )
+                      })}
                     </ul>
                   )}
                 </button>
@@ -1811,333 +2150,6 @@ Search.propTypes = {
     PropTypes.shape({
       id:    PropTypes.string.isRequired,
       label: PropTypes.string.isRequired,
-      color: PropTypes.string.isRequired,
-    })
-  ).isRequired,
-  onSelectDate: PropTypes.func.isRequired,
-}
-</file>
-
-<file path="src/index.css">
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@layer base {
-  html, body, #root {
-    width: 100%;
-    overflow-x: hidden;
-    margin: 0;
-    padding: 0;
-  }
-}
-
-@layer utilities {
-  /* Hide scrollbars while retaining touch scroll physics */
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-}
-</file>
-
-<file path="src/components/Calendar.jsx">
-import { useState, useRef, useLayoutEffect, useEffect, useMemo, useCallback } from "react"
-import DayCell from "./DayCell"
-import PropTypes from 'prop-types'
-
-const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-
-function getDaysInMonth(year, month) {
-  return new Date(year, month + 1, 0).getDate()
-}
-
-function getFirstDayOfMonth(year, month) {
-  const day = new Date(year, month, 1).getDay()
-  return (day + 6) % 7
-}
-
-function getNextMonth(year, month) {
-  return month === 11 ? { year: year + 1, month: 0 } : { year, month: month + 1 }
-}
-
-function getPrevMonth(year, month) {
-  return month === 0 ? { year: year - 1, month: 11 } : { year, month: month - 1 }
-}
-
-export default function Calendar({ entries, events, onSelectDate }) {
-  const today = useMemo(() => new Date(), [])
-  const [year, setYear] = useState(today.getFullYear())
-  const [month, setMonth] = useState(today.getMonth())
-
-  // 0: Prev month visible, 1: Current month, 2: Next month visible
-  const [activeIndex, setActiveIndex] = useState(1)
-
-  const scrollContainerRef = useRef(null)
-  const isUpdatingRef = useRef(false)
-  const scrollTimeoutRef = useRef(null)
-
-  const prevDate = useMemo(() => getPrevMonth(year, month), [year, month])
-  const nextDate = useMemo(() => getNextMonth(year, month), [year, month])
-
-  // Real-time display date: updates immediately as soon as swipe crosses 50%
-  const displayDate =
-    activeIndex === 0 ? prevDate :
-    activeIndex === 2 ? nextDate :
-    { year, month }
-
-  const isCurrentMonth = displayDate.year === today.getFullYear() && displayDate.month === today.getMonth()
-  const isFuture = displayDate.year > today.getFullYear() ||
-    (displayDate.year === today.getFullYear() && displayDate.month > today.getMonth())
-
-  const monthLabel = new Date(displayDate.year, displayDate.month).toLocaleString("default", {
-    month: "long", year: "numeric"
-  })
-
-  // Center scroll container on Panel 1 (Current Month)
-  useLayoutEffect(() => {
-    const el = scrollContainerRef.current
-    if (!el) return
-    isUpdatingRef.current = true
-    el.scrollLeft = el.offsetWidth
-    requestAnimationFrame(() => {
-      isUpdatingRef.current = false
-    })
-  }, [year, month])
-
-  const commitScroll = useCallback(() => {
-    const el = scrollContainerRef.current
-    if (!el) return
-    const width = el.offsetWidth
-    if (!width) return
-    const finalIndex = Math.round(el.scrollLeft / width)
-
-    if (finalIndex === 0) {
-      isUpdatingRef.current = true
-      setYear(prevDate.year)
-      setMonth(prevDate.month)
-      setActiveIndex(1)
-    } else if (finalIndex === 2) {
-      isUpdatingRef.current = true
-      setYear(nextDate.year)
-      setMonth(nextDate.month)
-      setActiveIndex(1)
-    } else {
-      setActiveIndex(1)
-    }
-  }, [prevDate, nextDate])
-
-  // Native Android 'scrollend' event for instant zero-delay snap detection
-  useEffect(() => {
-    const el = scrollContainerRef.current
-    if (!el) return
-
-    function onScrollEnd() {
-      if (isUpdatingRef.current) return
-      commitScroll()
-    }
-
-    el.addEventListener("scrollend", onScrollEnd)
-    return () => {
-      el.removeEventListener("scrollend", onScrollEnd)
-    }
-  }, [commitScroll])
-
-  function handleScroll() {
-    if (isUpdatingRef.current) return
-    const el = scrollContainerRef.current
-    if (!el) return
-
-    const width = el.offsetWidth
-    if (!width) return
-
-    // 1. Live Header Sync: calculate dominant month in real-time
-    const currentPosition = el.scrollLeft / width
-    const targetIndex = Math.min(2, Math.max(0, Math.round(currentPosition)))
-    if (targetIndex !== activeIndex) {
-      setActiveIndex(targetIndex)
-    }
-
-    // 2. Fallback settle timer for WebViews lacking native 'scrollend'
-    clearTimeout(scrollTimeoutRef.current)
-    scrollTimeoutRef.current = setTimeout(() => {
-      if (!isUpdatingRef.current) {
-        commitScroll()
-      }
-    }, 80)
-  }
-
-  function scrollToPrev() {
-    const el = scrollContainerRef.current
-    if (!el) return
-    el.scrollTo({ left: 0, behavior: "smooth" })
-  }
-
-  function scrollToNext() {
-    const el = scrollContainerRef.current
-    if (!el) return
-    el.scrollTo({ left: el.offsetWidth * 2, behavior: "smooth" })
-  }
-
-  function goToToday() {
-    isUpdatingRef.current = true
-    setActiveIndex(1)
-    setYear(today.getFullYear())
-    setMonth(today.getMonth())
-  }
-
-  function renderMonthGrid(y, m) {
-    const daysInMonth = getDaysInMonth(y, m)
-    const firstDaySlot = getFirstDayOfMonth(y, m)
-    const cells = []
-
-    for (let i = 0; i < firstDaySlot; i++) {
-      cells.push(<div key={`empty-${y}-${m}-${i}`} />)
-    }
-
-    for (let day = 1; day <= daysInMonth; day++) {
-      const dateKey = `${y}-${String(m + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
-      const isToday =
-        day === today.getDate() &&
-        m === today.getMonth() &&
-        y === today.getFullYear()
-
-      const dayEvents = events.filter(e => e.date === dateKey)
-      const entryColor = entries[dateKey]?.color || null
-
-      cells.push(
-        <DayCell
-          key={dateKey}
-          day={day}
-          dateKey={dateKey}
-          isToday={isToday}
-          entryColor={entryColor}
-          events={dayEvents}
-          onClick={() => onSelectDate(dateKey)}
-        />
-      )
-    }
-
-    return (
-      <div className="grid grid-cols-7 gap-1 w-full">
-        {cells}
-      </div>
-    )
-  }
-
-  return (
-    <section aria-label="Calendar" className="flex-1 flex flex-col w-full">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <button
-          onClick={scrollToPrev}
-          aria-label="Previous month"
-          className="p-2 rounded-full text-slate-700 hover:bg-slate-200/70 active:bg-slate-300 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
-        >
-          ◀
-        </button>
-        <h2 className="text-lg font-semibold text-slate-900">{monthLabel}</h2>
-        <button
-          onClick={scrollToNext}
-          aria-label="Next month"
-          className="p-2 rounded-full text-slate-700 hover:bg-slate-200/70 active:bg-slate-300 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600"
-        >
-          ▶
-        </button>
-      </div>
-
-      
-
-      {/* Day labels (fixed at top) */}
-      <div className="grid grid-cols-7 mb-1">
-        {DAYS.map(d => (
-          <div
-            key={d}
-            className="text-center text-xs font-medium text-slate-500 py-1"
-            aria-hidden="true"
-          >
-            {d}
-          </div>
-        ))}
-      </div>
-
-      {/* Full-height Touch Drag Track with CSS Scroll Snap */}
-      <div className="-m-2 p-2 flex-1 flex flex-col overflow-hidden">
-        <div
-          ref={scrollContainerRef}
-          onScroll={handleScroll}
-          className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar w-full flex-1"
-          style={{ WebkitOverflowScrolling: "touch" }}
-        >
-          {/* Panel 0: Previous Month */}
-          <div className="w-full flex-shrink-0 snap-start px-0.5 h-full flex flex-col">
-            {renderMonthGrid(prevDate.year, prevDate.month)}
-            <div className="flex-1 min-h-[5rem]" aria-hidden="true" />
-          </div>
-
-          {/* Panel 1: Current Month */}
-          <div className="w-full flex-shrink-0 snap-start px-0.5 h-full flex flex-col">
-            {renderMonthGrid(year, month)}
-            <div className="flex-1 min-h-[5rem]" aria-hidden="true" />
-          </div>
-
-          {/* Panel 2: Next Month */}
-          <div className="w-full flex-shrink-0 snap-start px-0.5 h-full flex flex-col">
-            {renderMonthGrid(nextDate.year, nextDate.month)}
-            <div className="flex-1 min-h-[5rem]" aria-hidden="true" />
-          </div>
-</div>
-      </div>
-
-      {/* M3 Tonal Elevated FAB for "Today" */}
-      <div className="fixed bottom-20 left-0 right-0 max-w-lg mx-auto px-4 pointer-events-none flex justify-end z-20">
-        <button
-          onClick={goToToday}
-          aria-label="Jump back to current month"
-          tabIndex={isCurrentMonth ? -1 : 0}
-          className={`pointer-events-auto flex items-center h-11 px-4 rounded-full bg-white border border-slate-200 text-slate-700 hover:text-indigo-600 hover:border-slate-300 active:bg-slate-50 font-medium text-xs tracking-wide shadow-md transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600 active:scale-95 ${
-            isCurrentMonth
-              ? "opacity-0 translate-y-3 pointer-events-none"
-              : "opacity-100 translate-y-0"
-          }`}
-        >
-          <svg
-            className="w-3.5 h-3.5 mr-1.5 flex-shrink-0 text-slate-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-            />
-          </svg>
-          <span>Today</span>
-        </button>
-      </div>
-    </section>
-  )
-}
-
-Calendar.propTypes = {
-  entries: PropTypes.objectOf(
-    PropTypes.shape({
-      note: PropTypes.string,
-      color: PropTypes.string,
-      category: PropTypes.string,
-    })
-  ).isRequired,
-  events: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number.isRequired,
-      date: PropTypes.string.isRequired,
-      title: PropTypes.string.isRequired,
       color: PropTypes.string.isRequired,
     })
   ).isRequired,
@@ -2279,7 +2291,395 @@ jobs:
           retention-days: 30
 </file>
 
+<file path="src/components/Calendar.jsx">
+// src/components/Calendar.jsx
+import { useState, useRef, useMemo, useCallback, useEffect } from "react"
+import DayCell from "./DayCell"
+import PropTypes from 'prop-types'
+import { getColorToken } from '../utils/m3Palette'
+
+const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+function getDaysInMonth(year, month) {
+  return new Date(year, month + 1, 0).getDate()
+}
+
+function getFirstDayOfMonth(year, month) {
+  const day = new Date(year, month, 1).getDay()
+  return (day + 6) % 7
+}
+
+function getNextMonth(year, month) {
+  return month === 11 ? { year: year + 1, month: 0 } : { year, month: month + 1 }
+}
+
+function getPrevMonth(year, month) {
+  return month === 0 ? { year: year - 1, month: 11 } : { year, month: month - 1 }
+}
+
+export default function Calendar({ entries, events, onSelectDate }) {
+const today = useMemo(() => new Date(), [])
+  const [year, setYear] = useState(today.getFullYear())
+  const [month, setMonth] = useState(today.getMonth())
+
+  // Real-time display date: updates at Frame 0 for instant, zero-lag title changes
+  const [displayDate, setDisplayDate] = useState(() => ({
+    year: today.getFullYear(),
+    month: today.getMonth()
+  }))
+
+  // Gesture State
+  const [dragOffset, setDragOffset] = useState(0)
+  const [isAnimating, setIsAnimating] = useState(false)
+  const pendingActionRef = useRef(null) // 'next' | 'prev' | null
+  const safetyTimerRef = useRef(null)
+
+  // Touch tracking refs
+  const touchStartX = useRef(0)
+  const touchStartY = useRef(0)
+  const touchStartTime = useRef(0)
+  const isHorizontalGesture = useRef(null)
+  const containerRef = useRef(null)
+
+  const prevDate = useMemo(() => getPrevMonth(year, month), [year, month])
+  const nextDate = useMemo(() => getNextMonth(year, month), [year, month])
+
+  // Synchronized with displayDate for instant FAB and title reactivity
+  const isCurrentMonth = displayDate.year === today.getFullYear() && displayDate.month === today.getMonth()
+
+  const monthLabel = useMemo(() => {
+    return new Date(displayDate.year, displayDate.month).toLocaleString("default", {
+      month: "long", year: "numeric"
+    })
+  }, [displayDate.year, displayDate.month])
+
+  // Instantly commits any pending transition
+  const flushPendingTransition = useCallback(() => {
+    clearTimeout(safetyTimerRef.current)
+    if (!pendingActionRef.current) {
+      setIsAnimating(false)
+      setDragOffset(0)
+      return
+    }
+
+    const action = pendingActionRef.current
+    pendingActionRef.current = null
+    setIsAnimating(false)
+    setDragOffset(0)
+
+    if (action === 'next') {
+      setYear(nextDate.year)
+      setMonth(nextDate.month)
+      setDisplayDate(nextDate)
+    } else if (action === 'prev') {
+      setYear(prevDate.year)
+      setMonth(prevDate.month)
+      setDisplayDate(prevDate)
+    }
+  }, [nextDate, prevDate])
+
+  // Cleanup safety timer on unmount
+  useEffect(() => {
+    return () => clearTimeout(safetyTimerRef.current)
+  }, [])
+
+  // --- Touch Gesture Handlers ---
+
+  function handleTouchStart(e) {
+    if (isAnimating) {
+      flushPendingTransition()
+    }
+
+    touchStartX.current = e.touches[0].clientX
+    touchStartY.current = e.touches[0].clientY
+    touchStartTime.current = Date.now()
+    isHorizontalGesture.current = null
+  }
+
+  function handleTouchMove(e) {
+    const currentX = e.touches[0].clientX
+    const currentY = e.touches[0].clientY
+    const deltaX = currentX - touchStartX.current
+    const deltaY = currentY - touchStartY.current
+
+    if (isHorizontalGesture.current === null) {
+      if (Math.abs(deltaX) > 8 || Math.abs(deltaY) > 8) {
+        isHorizontalGesture.current = Math.abs(deltaX) > Math.abs(deltaY)
+      }
+    }
+
+    if (isHorizontalGesture.current) {
+      setDragOffset(deltaX)
+    }
+  }
+
+  function handleTouchEnd(e) {
+    if (!isHorizontalGesture.current) {
+      setDragOffset(0)
+      return
+    }
+
+    const currentX = e.changedTouches[0].clientX
+    const deltaX = currentX - touchStartX.current
+    const duration = Date.now() - touchStartTime.current
+    const velocity = Math.abs(deltaX) / Math.max(duration, 1)
+    const containerWidth = containerRef.current?.offsetWidth || 340
+
+    // Threshold: 40px drag or quick flick (velocity > 0.3)
+    const isSwipe = Math.abs(deltaX) > 40 || velocity > 0.3
+
+    if (isSwipe && deltaX < 0) {
+      // Swiped Left -> Immediately update header to Next Month (0ms delay)
+      setDisplayDate(nextDate)
+      pendingActionRef.current = 'next'
+      setIsAnimating(true)
+      setDragOffset(-containerWidth)
+      safetyTimerRef.current = setTimeout(flushPendingTransition, 220)
+    } else if (isSwipe && deltaX > 0) {
+      // Swiped Right -> Immediately update header to Prev Month (0ms delay)
+      setDisplayDate(prevDate)
+      pendingActionRef.current = 'prev'
+      setIsAnimating(true)
+      setDragOffset(containerWidth)
+      safetyTimerRef.current = setTimeout(flushPendingTransition, 220)
+    } else {
+      // Snap back to current
+      setDisplayDate({ year, month })
+      setIsAnimating(true)
+      setDragOffset(0)
+      safetyTimerRef.current = setTimeout(flushPendingTransition, 220)
+    }
+  }
+
+  function handleTransitionEnd() {
+    flushPendingTransition()
+  }
+
+  // --- Button Navigation ---
+
+  function scrollToPrev() {
+    if (isAnimating) flushPendingTransition()
+    const containerWidth = containerRef.current?.offsetWidth || 340
+    // Immediately flip header to prev month
+    setDisplayDate(prevDate)
+    pendingActionRef.current = 'prev'
+    setIsAnimating(true)
+    setDragOffset(containerWidth)
+    safetyTimerRef.current = setTimeout(flushPendingTransition, 220)
+  }
+
+  function scrollToNext() {
+    if (isAnimating) flushPendingTransition()
+    const containerWidth = containerRef.current?.offsetWidth || 340
+    // Immediately flip header to next month
+    setDisplayDate(nextDate)
+    pendingActionRef.current = 'next'
+    setIsAnimating(true)
+    setDragOffset(-containerWidth)
+    safetyTimerRef.current = setTimeout(flushPendingTransition, 220)
+  }
+
+  function goToToday() {
+    clearTimeout(safetyTimerRef.current)
+    pendingActionRef.current = null
+    setIsAnimating(false)
+    setDragOffset(0)
+    const todayState = { year: today.getFullYear(), month: today.getMonth() }
+    setDisplayDate(todayState)
+    setYear(todayState.year)
+    setMonth(todayState.month)
+  }
+
+  // Renders the month grid. Off-screen preview panels pass isInteractive=false
+  // to render static <div> elements, fully eliminating aria-hidden-focus violations.
+  function renderMonthGrid(y, m, isInteractive = true) {
+    const daysInMonth = getDaysInMonth(y, m)
+    const firstDaySlot = getFirstDayOfMonth(y, m)
+    const cells = []
+
+    for (let i = 0; i < firstDaySlot; i++) {
+      cells.push(<div key={`empty-${y}-${m}-${i}`} />)
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateKey = `${y}-${String(m + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+      const isToday =
+        day === today.getDate() &&
+        m === today.getMonth() &&
+        y === today.getFullYear()
+
+      const dayEvents = events.filter(e => e.date === dateKey)
+      const entryColor = entries[dateKey]?.color || null
+
+      if (isInteractive) {
+        cells.push(
+          <DayCell
+            key={dateKey}
+            day={day}
+            dateKey={dateKey}
+            isToday={isToday}
+            entryColor={entryColor}
+            events={dayEvents}
+            onClick={() => onSelectDate(dateKey)}
+          />
+        )
+      } else {
+        // Non-focusable static tile for preview panels (guarantees 0 aria-hidden-focus violations)
+        const token = getColorToken(entryColor)
+        cells.push(
+          <div
+            key={dateKey}
+            className="relative flex flex-col items-center justify-start w-full aspect-square rounded-xl pt-1.5 pb-1 bg-[#EEF2FF] text-[#1E1B4B] border border-white/60 font-medium select-none pointer-events-none"
+            style={
+              token
+                ? { backgroundColor: token.container, color: token.onContainer }
+                : undefined
+            }
+          >
+            <span className="text-sm leading-tight">{day}</span>
+          </div>
+        )
+      }
+    }
+
+    return (
+      <div className="grid grid-cols-7 gap-1.5 w-full select-none">
+        {cells}
+      </div>
+    )
+  }
+
+  return (
+    <section aria-label="Calendar" className="flex-1 flex flex-col w-full">
+      {/* Month Header Bar */}
+      <div className="flex items-center justify-between mb-3 px-1">
+        <button
+          onClick={scrollToPrev}
+          aria-label="Previous month"
+          className="w-12 h-12 flex items-center justify-center rounded-full text-[#1E1B4B] hover:bg-black/5 active:bg-black/10 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B]"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <h2 className="text-lg font-bold text-[#1E1B4B] tracking-tight select-none">{monthLabel}</h2>
+        <button
+          onClick={scrollToNext}
+          aria-label="Next month"
+          className="w-12 h-12 flex items-center justify-center rounded-full text-[#1E1B4B] hover:bg-black/5 active:bg-black/10 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B]"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Weekday headers — WCAG AAA contrast (#1E1B4B on #A5B4FC) */}
+      <div className="grid grid-cols-7 mb-1.5 select-none">
+        {DAYS.map(d => (
+          <div
+            key={d}
+            className="text-center text-xs font-bold text-[#1E1B4B] py-1 select-none"
+            aria-hidden="true"
+          >
+            {d}
+          </div>
+        ))}
+      </div>
+
+      {/* Strict 100% Viewport Container (Zero bleeding / zero peeking) */}
+      <div
+        ref={containerRef}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        className="w-full flex-1 flex flex-col overflow-hidden touch-pan-y select-none"
+      >
+        {/* 300% Width Track: exactly 3 equal panels resting at -33.333333% */}
+        <div
+          onTransitionEnd={handleTransitionEnd}
+          className="flex will-change-transform flex-1"
+          style={{
+            width: '300%',
+            transform: `translate3d(calc(-33.333333% + ${dragOffset}px), 0, 0)`,
+            transition: isAnimating ? 'transform 180ms cubic-bezier(0.2, 0, 0, 1)' : 'none',
+          }}
+        >
+          {/* Panel -1: Previous Month (Static Tiles, No Focusable Buttons) */}
+          <div className="w-1/3 flex-shrink-0 px-0.5 h-full flex flex-col" aria-hidden="true">
+            {renderMonthGrid(prevDate.year, prevDate.month, false)}
+            <div className="flex-1 min-h-[5rem]" />
+          </div>
+
+          {/* Panel 0: Current Active Month (Interactive Buttons) */}
+          <div className="w-1/3 flex-shrink-0 px-0.5 h-full flex flex-col">
+            {renderMonthGrid(year, month, true)}
+            <div className="flex-1 min-h-[5rem]" />
+          </div>
+
+          {/* Panel +1: Next Month (Static Tiles, No Focusable Buttons) */}
+          <div className="w-1/3 flex-shrink-0 px-0.5 h-full flex flex-col" aria-hidden="true">
+            {renderMonthGrid(nextDate.year, nextDate.month, false)}
+            <div className="flex-1 min-h-[5rem]" />
+          </div>
+        </div>
+      </div>
+
+      {/* M3 Tonal FAB for "Today" */}
+      <div className="fixed bottom-24 left-0 right-0 max-w-lg mx-auto px-4 pointer-events-none flex justify-end z-20">
+        <button
+          onClick={goToToday}
+          aria-label="Jump back to current month"
+          tabIndex={isCurrentMonth ? -1 : 0}
+          className={`pointer-events-auto flex items-center h-12 px-5 rounded-2xl bg-[#EEF2FF] text-[#1E1B4B] hover:bg-white active:scale-95 border border-black/10 font-semibold text-xs tracking-wide shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B] ${
+            isCurrentMonth
+              ? "opacity-0 translate-y-3 pointer-events-none"
+              : "opacity-100 translate-y-0"
+          }`}
+        >
+          <svg
+            className="w-4 h-4 mr-2 flex-shrink-0 text-[#1E1B4B]"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2.2}
+              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+            />
+          </svg>
+          <span>Today</span>
+        </button>
+      </div>
+    </section>
+  )
+}
+
+Calendar.propTypes = {
+  entries: PropTypes.objectOf(
+    PropTypes.shape({
+      note:     PropTypes.string,
+      color:    PropTypes.string,
+      category: PropTypes.string,
+    })
+  ).isRequired,
+  events: PropTypes.arrayOf(
+    PropTypes.shape({
+      id:    PropTypes.number.isRequired,
+      date:  PropTypes.string.isRequired,
+      title: PropTypes.string.isRequired,
+      color: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  onSelectDate: PropTypes.func.isRequired,
+}
+</file>
+
 <file path="src/App.jsx">
+// src/App.jsx
 import { useState } from 'react'
 import { useDiary } from './hooks/useDiary'
 import Calendar   from './components/Calendar'
@@ -2288,11 +2688,79 @@ import History    from './components/History'
 import Search     from './components/Search'
 import Categories from './components/Categories'
 import DataBackup from './components/DataBackup'
+
+// Authentic M3 Navigation Icons (Filled when active, Outlined when inactive)
+function NavIcon({ name, isActive }) {
+  const iconProps = {
+    className: "w-6 h-6 transition-transform duration-200",
+    viewBox: "0 0 24 24",
+    "aria-hidden": "true",
+  }
+
+  if (name === 'calendar') {
+    return isActive ? (
+      <svg {...iconProps} fill="currentColor">
+        <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7v-5z" />
+      </svg>
+    ) : (
+      <svg {...iconProps} fill="none" stroke="currentColor" strokeWidth="2">
+        <rect x="3" y="4" width="18" height="18" rx="2" />
+        <line x1="16" y1="2" x2="16" y2="6" strokeLinecap="round" />
+        <line x1="8" y1="2" x2="8" y2="6" strokeLinecap="round" />
+        <line x1="3" y1="10" x2="21" y2="10" />
+      </svg>
+    )
+  }
+
+  if (name === 'history') {
+    return isActive ? (
+      <svg {...iconProps} fill="currentColor">
+        <path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-2 14l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
+      </svg>
+    ) : (
+      <svg {...iconProps} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
+        <rect x="9" y="3" width="6" height="4" rx="1" />
+        <line x1="9" y1="12" x2="15" y2="12" />
+        <line x1="9" y1="16" x2="13" y2="16" />
+      </svg>
+    )
+  }
+
+  if (name === 'search') {
+    return isActive ? (
+      <svg {...iconProps} fill="currentColor">
+        <path fillRule="evenodd" clipRule="evenodd" d="M10.5 3.75a6.75 6.75 0 100 13.5 6.75 6.75 0 000-13.5zM1.75 10.5a8.75 8.75 0 1115.56 5.398l4.146 4.146a1 1 0 01-1.414 1.414l-4.146-4.146A8.75 8.75 0 011.75 10.5z" />
+      </svg>
+    ) : (
+      <svg {...iconProps} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="11" cy="11" r="7" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+    )
+  }
+
+  if (name === 'settings') {
+    return isActive ? (
+      <svg {...iconProps} fill="currentColor">
+        <path fillRule="evenodd" clipRule="evenodd" d="M11.078 2.25c-.917 0-1.699.663-1.85 1.567L8.914 5.76a7.518 7.518 0 00-1.748 1.01l-1.848-.795a1.875 1.875 0 00-2.28.694l-1.125 1.95a1.875 1.875 0 00.435 2.35l1.54 1.282a7.54 7.54 0 000 2.018l-1.54 1.282a1.875 1.875 0 00-.435 2.35l1.125 1.95a1.875 1.875 0 002.28.694l1.848-.795c.538.41 1.124.75 1.748 1.01l.314 1.943c.151.904.933 1.567 1.85 1.567h2.25c.917 0 1.699-.663 1.85-1.567l.314-1.943a7.518 7.518 0 001.748-1.01l1.848.795a1.875 1.875 0 002.28-.694l1.125-1.95a1.875 1.875 0 00-.435-2.35l-1.54-1.282a7.54 7.54 0 000-2.018l1.54-1.282a1.875 1.875 0 00.435-2.35l-1.125-1.95a1.875 1.875 0 00-2.28-.694l-1.848.795a7.518 7.518 0 00-1.748-1.01l-.314-1.943A1.875 1.875 0 0013.328 2.25h-2.25zM12 15a3 3 0 100-6 3 3 0 000 6z" />
+      </svg>
+    ) : (
+      <svg {...iconProps} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
+      </svg>
+    )
+  }
+
+  return null
+}
+
 const TABS = [
-  { key: 'calendar',   icon: '📅', label: 'Calendar'   },
-  { key: 'history',    icon: '📋', label: 'History'    },
-  { key: 'search',     icon: '🔍', label: 'Search'     },
-  { key: 'settings',   icon: '⚙️',  label: 'Settings'   },
+  { key: 'calendar', label: 'Calendar' },
+  { key: 'history',  label: 'History'  },
+  { key: 'search',   label: 'Search'   },
+  { key: 'settings', label: 'Settings' },
 ]
 
 export default function App() {
@@ -2315,17 +2783,17 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col overflow-x-hidden">
+    <div className="min-h-screen bg-[#A5B4FC] flex flex-col overflow-x-hidden">
 
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 px-4 py-3 shadow-sm">
-        <h1 className="text-xl font-bold text-slate-900 text-center">
+      {/* M3 Top App Bar — Luminous Glow Surface (#EEF2FF) */}
+      <header className="bg-[#EEF2FF] px-4 py-3.5 shadow-md border-b border-black/5">
+        <h1 className="text-lg font-bold text-[#1E1B4B] tracking-tight text-center select-none">
           📓 My Diary
         </h1>
       </header>
 
-      {/* Main */}
-      <main className="flex-1 flex flex-col p-4 max-w-lg mx-auto w-full pb-20">
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col p-4 max-w-lg mx-auto w-full pb-24">
         {view === 'calendar' && (
           <Calendar
             entries={entries}
@@ -2367,28 +2835,47 @@ export default function App() {
         )}
       </main>
 
-      {/* Bottom navigation */}
+      {/* M3 Navigation Bar — Height: 80dp (h-20), Pill: 64x32dp (w-16 h-8) */}
       <nav
         aria-label="Main navigation"
-        className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 flex"
+        className="fixed bottom-0 left-0 right-0 bg-[#EEF2FF] border-t border-black/5 flex justify-around items-center h-20 px-2 shadow-lg z-30"
       >
-        {TABS.map(tab => (
-          <button
-            key={tab.key}
-            onClick={() => setView(tab.key)}
-            aria-current={view === tab.key ? 'page' : undefined}
-            className={[
-              'flex-1 flex flex-col items-center py-3 text-xs font-medium transition focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600',
-              view === tab.key ? 'text-indigo-600 font-semibold' : 'text-slate-500 hover:text-slate-800',
-            ].join(' ')}
-          >
-            <span className="text-xl mb-0.5" aria-hidden="true">{tab.icon}</span>
-            {tab.label}
-          </button>
-        ))}
+        {TABS.map(tab => {
+          const isActive = view === tab.key
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setView(tab.key)}
+              aria-current={isActive ? 'page' : undefined}
+              className="flex-1 min-h-[48px] flex flex-col items-center justify-center py-1 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4F46E5] rounded-xl"
+            >
+              {/* M3 Active Indicator Pill (w-16 h-8 rounded-full) */}
+              <div
+                className={`w-16 h-8 flex items-center justify-center rounded-full transition-all duration-200 ${
+                  isActive
+                    ? 'bg-[#C7D2FE] text-[#4F46E5] shadow-xs'
+                    : 'bg-transparent text-[#1E1B4B] hover:bg-black/5'
+                }`}
+              >
+                <NavIcon name={tab.key} isActive={isActive} />
+              </div>
+              
+              {/* M3 Tab Label */}
+              <span
+                className={`text-xs mt-1 transition-colors select-none ${
+                  isActive
+                    ? 'font-bold text-[#4F46E5]'
+                    : 'font-medium text-[#1E1B4B]'
+                }`}
+              >
+                {tab.label}
+              </span>
+            </button>
+          )
+        })}
       </nav>
 
-      {/* Diary modal */}
+      {/* Diary Entry Modal Sheet */}
       {selectedDate && (
         <DiaryEntry
           dateKey={selectedDate}
