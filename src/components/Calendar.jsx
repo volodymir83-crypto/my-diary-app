@@ -38,6 +38,7 @@ export default function Calendar({ entries, events, onSelectDate }) {
 
   const scrollContainerRef = useRef(null)
   const isUpdatingRef = useRef(false)
+  const isTouchDownRef = useRef(false)
   const scrollTimeoutRef = useRef(null)
 
   const prevDate = useMemo(() => getPrevMonth(year, month), [year, month])
@@ -52,18 +53,46 @@ export default function Calendar({ entries, events, onSelectDate }) {
   }, [displayDate.year, displayDate.month])
 
   // Center scroll container silently without triggering animation
-  useLayoutEffect(() => {
+  const centerTrack = useCallback(() => {
     const el = scrollContainerRef.current
-    if (!el) return
+    if (!el || el.offsetWidth === 0) return
     isUpdatingRef.current = true
     el.scrollLeft = el.offsetWidth
+
+    // Drain compositor queue across 2 animation frames before unlocking
     requestAnimationFrame(() => {
-      isUpdatingRef.current = false
+      requestAnimationFrame(() => {
+        isUpdatingRef.current = false
+      })
     })
-  }, [year, month])
+  }, [])
+
+  // Fix 1: Guarantee proper centering on cold app launch as soon as layout dimensions settle
+  useEffect(() => {
+    const el = scrollContainerRef.current
+    if (!el) return
+
+    centerTrack()
+
+    // Observe size in case WebView layout finishes after mount
+    const ro = new ResizeObserver(() => {
+      centerTrack()
+    })
+    ro.observe(el)
+
+    return () => ro.disconnect()
+  }, [centerTrack])
+
+  // Re-center whenever year or month state updates
+  useLayoutEffect(() => {
+    centerTrack()
+  }, [year, month, centerTrack])
 
   // Commits the scroll, resetting the track to the center panel
   const commitScroll = useCallback(() => {
+    // Never commit while the user's thumb is still on the glass
+    if (isTouchDownRef.current) return
+
     const el = scrollContainerRef.current
     if (!el) return
     const width = el.offsetWidth
@@ -87,13 +116,16 @@ export default function Calendar({ entries, events, onSelectDate }) {
     }
   }, [prevDate, nextDate])
 
-  // Native Android 'scrollend' strictly guarantees momentum has stopped
+  // Fix 2: Feature-detect native 'scrollend'.
+  // If native 'scrollend' exists, we DO NOT use a timeout to eliminate collision bugs.
+  const hasNativeScrollEnd = typeof window !== 'undefined' && 'onscrollend' in window
+
   useEffect(() => {
     const el = scrollContainerRef.current
     if (!el) return
 
     function onScrollEnd() {
-      if (isUpdatingRef.current) return
+      if (isUpdatingRef.current || isTouchDownRef.current) return
       commitScroll()
     }
 
@@ -114,7 +146,7 @@ export default function Calendar({ entries, events, onSelectDate }) {
 
     const currentPosition = el.scrollLeft / width
     const targetIndex = Math.min(2, Math.max(0, Math.round(currentPosition)))
-    
+
     // Instantly update the title header based on which panel is most visible
     if (targetIndex !== activeIndex) {
       setActiveIndex(targetIndex)
@@ -123,13 +155,33 @@ export default function Calendar({ entries, events, onSelectDate }) {
       else setDisplayDate({ year, month })
     }
 
-    // Safety fallback for older Android devices that lack the 'scrollend' event
-    clearTimeout(scrollTimeoutRef.current)
-    scrollTimeoutRef.current = setTimeout(() => {
-      if (!isUpdatingRef.current) {
-        commitScroll()
-      }
-    }, 120) // 120ms accommodates slow, natural scroll decays
+    // Only run fallback timer on legacy WebViews that lack native 'scrollend'
+    if (!hasNativeScrollEnd) {
+      clearTimeout(scrollTimeoutRef.current)
+      scrollTimeoutRef.current = setTimeout(() => {
+        if (!isUpdatingRef.current && !isTouchDownRef.current) {
+          commitScroll()
+        }
+      }, 140)
+    }
+  }
+
+  // Fix 3: Touch handlers to prevent resetting while thumb is on the glass
+  function handleTouchStart() {
+    isTouchDownRef.current = true
+  }
+
+  function handleTouchEnd() {
+    isTouchDownRef.current = false
+    // If on legacy device without scrollend, check for commit after release
+    if (!hasNativeScrollEnd) {
+      clearTimeout(scrollTimeoutRef.current)
+      scrollTimeoutRef.current = setTimeout(() => {
+        if (!isUpdatingRef.current) {
+          commitScroll()
+        }
+      }, 140)
+    }
   }
 
   function scrollToPrev() {
@@ -153,7 +205,7 @@ export default function Calendar({ entries, events, onSelectDate }) {
     setMonth(todayState.month)
   }
 
-  // Renders standard interactive DayCells for the current month, 
+  // Renders standard interactive DayCells for the current month,
   // and static visually-identical tiles for off-screen panels (0 memory bloat, 0 aria errors).
   function renderMonthGrid(y, m, isInteractive = true) {
     const daysInMonth = getDaysInMonth(y, m)
@@ -257,7 +309,7 @@ export default function Calendar({ entries, events, onSelectDate }) {
         </button>
       </div>
 
-      {/* Weekday headers */}
+      {/* Weekday headers — WCAG AAA contrast (#1E1B4B on #A5B4FC) */}
       <div className="grid grid-cols-7 mb-1.5 select-none">
         {DAYS.map(d => (
           <div
@@ -275,23 +327,37 @@ export default function Calendar({ entries, events, onSelectDate }) {
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
           className="flex overflow-x-auto snap-x snap-mandatory no-scrollbar w-full flex-1"
           style={{ WebkitOverflowScrolling: "touch" }}
         >
           {/* Panel -1: Previous Month */}
-          <div className="w-full flex-shrink-0 snap-start snap-always px-0.5 h-full flex flex-col" aria-hidden="true">
+          <div
+            className="w-full flex-shrink-0 snap-start snap-always px-0.5 h-full flex flex-col"
+            style={{ scrollSnapStop: 'always' }}
+            aria-hidden="true"
+          >
             {renderMonthGrid(prevDate.year, prevDate.month, false)}
             <div className="flex-1 min-h-[5rem]" />
           </div>
 
           {/* Panel 0: Current Month */}
-          <div className="w-full flex-shrink-0 snap-start snap-always px-0.5 h-full flex flex-col">
+          <div
+            className="w-full flex-shrink-0 snap-start snap-always px-0.5 h-full flex flex-col"
+            style={{ scrollSnapStop: 'always' }}
+          >
             {renderMonthGrid(year, month, true)}
             <div className="flex-1 min-h-[5rem]" />
           </div>
 
           {/* Panel +1: Next Month */}
-          <div className="w-full flex-shrink-0 snap-start snap-always px-0.5 h-full flex flex-col" aria-hidden="true">
+          <div
+            className="w-full flex-shrink-0 snap-start snap-always px-0.5 h-full flex flex-col"
+            style={{ scrollSnapStop: 'always' }}
+            aria-hidden="true"
+          >
             {renderMonthGrid(nextDate.year, nextDate.month, false)}
             <div className="flex-1 min-h-[5rem]" />
           </div>
@@ -304,7 +370,7 @@ export default function Calendar({ entries, events, onSelectDate }) {
           onClick={goToToday}
           aria-label="Jump back to current month"
           tabIndex={isCurrentMonth ? -1 : 0}
-          className={`pointer-events-auto flex items-center h-12 px-5 rounded-2xl bg-[#EEF2FF] text-[#1E1B4B] hover:bg-white active:scale-95 border border-black/10 font-semibold text-xs tracking-wide shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B] ${
+          className={`pointer-events-auto flex items-center h-12 px-5 rounded-2xl bg-[#EEF2FF] text-[#1E1B4B] hover:bg-white active:scale-95 border border-black/10 font-semibold text-xs tracking-wide shadow-md hover:shadow-lg transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B] ${
             isCurrentMonth
               ? "opacity-0 translate-y-3 pointer-events-none"
               : "opacity-100 translate-y-0"
