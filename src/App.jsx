@@ -1,5 +1,6 @@
 // src/App.jsx
 import { useState } from 'react'
+import PropTypes from 'prop-types'
 import { useDiary } from './hooks/useDiary'
 import Calendar   from './components/Calendar'
 import DiaryEntry from './components/DiaryEntry'
@@ -73,6 +74,11 @@ function NavIcon({ name, isActive }) {
   }
 
   return null
+}
+
+NavIcon.propTypes = {
+  name: PropTypes.string.isRequired,
+  isActive: PropTypes.bool.isRequired,
 }
 
 const TABS = [
