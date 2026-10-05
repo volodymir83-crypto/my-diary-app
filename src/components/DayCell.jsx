@@ -2,7 +2,7 @@
 import PropTypes from 'prop-types'
 import { getColorToken } from '../utils/m3Palette'
 
-export default function DayCell({ day, dateKey, isToday, entryColor, events, onClick }) {
+export default function DayCell({ day, dateKey, isToday, entryColor = null, events, onClick }) {
   const colorToken = getColorToken(entryColor)
   const hasNote    = Boolean(entryColor)
   const hasEvents  = events.length > 0
@@ -21,7 +21,6 @@ export default function DayCell({ day, dateKey, isToday, entryColor, events, onC
       className={[
         "relative flex flex-col items-center justify-start",
         "w-full aspect-square rounded-xl pt-1.5 pb-1",
-        // Scoped transform transition only for active tap: zero GPU thrashing during swipes
         "transition-transform duration-100",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B] focus-visible:z-10",
         "active:scale-95 shadow-sm",
@@ -29,7 +28,7 @@ export default function DayCell({ day, dateKey, isToday, entryColor, events, onC
           ? "border border-black/10"
           : "bg-[#EEF2FF] text-[#1E1B4B] hover:bg-white border border-white/60",
         isToday
-          ? "ring-2 ring-[#1E1B4B] font-bold"
+          ? "ring-2 ring-[#1E1B4B] font-bold today-glow-border"
           : "font-medium",
       ].join(" ")}
       style={
@@ -77,8 +76,4 @@ DayCell.propTypes = {
     })
   ).isRequired,
   onClick: PropTypes.func.isRequired,
-}
-
-DayCell.defaultProps = {
-  entryColor: null,
 }

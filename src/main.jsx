@@ -4,11 +4,7 @@ import './index.css'
 import App from './App.jsx'
 
 
-// 1. Import the devtools initializer
-import { initDevTools } from './devtools.js'
-
-// 2. Call it before rendering the app
-initDevTools()
+// Devtools are now managed interactively via <DevInspector /> in src/App.jsx
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

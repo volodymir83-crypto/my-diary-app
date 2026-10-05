@@ -1,11 +1,11 @@
 // src/components/DiaryEntry.jsx
-import { useState } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import PropTypes from 'prop-types'
 import { getUsedColors } from '../utils/colorUsage'
 import { M3_CONTENT_PALETTE, getColorToken } from '../utils/m3Palette'
 
 export default function DiaryEntry({
-  dateKey, entry, entries, events, categories,
+  dateKey, entry = null, entries, events, categories,
   onSave, onDelete, onAddEvent, onDeleteEvent, onClose
 }) {
   const existingColorToken = getColorToken(entry?.color)
@@ -16,17 +16,34 @@ export default function DiaryEntry({
   const [eventTitle,          setEventTitle]         = useState('')
   const [selectedEventColorId, setSelectedEventColorId] = useState(null)
 
+  // M3 Exit Motion State (smooth 150ms exit before unmounting)
+  const [isClosing, setIsClosing] = useState(false)
+  const closeTimerRef = useRef(null)
+
+  const startClosing = useCallback((actionCallback) => {
+    if (isClosing) return
+    setIsClosing(true)
+    closeTimerRef.current = setTimeout(() => {
+      if (actionCallback) {
+        actionCallback()
+      }
+      onClose()
+    }, 150) // Synchronized with m3DialogExit (150ms)
+  }, [isClosing, onClose])
+
+  useEffect(() => {
+    return () => clearTimeout(closeTimerRef.current)
+  }, [])
+
   const dayEvents = events.filter(e => e.date === dateKey)
 
   // Exclude this date's own color so it remains selectable while editing
   const usedColors = getUsedColors({ categories, entries, events, excludeDateKey: dateKey })
 
-  // Available M3 colors for manual highlight
   const availableEntryColors = M3_CONTENT_PALETTE.filter(
     c => c.id === colorId || !usedColors.has(c.id)
   )
 
-  // Available M3 colors for events
   const availableEventColors = M3_CONTENT_PALETTE.filter(
     c => !usedColors.has(c.id)
   )
@@ -52,14 +69,31 @@ export default function DiaryEntry({
   }
 
   function handleSave() {
-    onSave(dateKey, note, colorId, category)
-    onClose()
+    startClosing(() => {
+      onSave(dateKey, note, colorId, category)
+    })
   }
 
   function handleDelete() {
-    onDelete(dateKey)
-    onClose()
+    startClosing(() => {
+      onDelete(dateKey)
+    })
   }
+
+  const handleClose = useCallback(() => {
+    startClosing()
+  }, [startClosing])
+
+  // Close modal on Escape key press (WCAG 2.2 AA accessibility)
+  useEffect(() => {
+    function onKeyDown(e) {
+      if (e.key === 'Escape') {
+        handleClose()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [handleClose])
 
   function handleAddEvent() {
     if (!eventTitle.trim() || !eventColorId) return
@@ -72,23 +106,36 @@ export default function DiaryEntry({
   const activeCatToken = activeCategory ? getColorToken(activeCategory.color) : null
 
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={`Diary entry for ${formattedDate}`}
-      className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center z-50 p-2 sm:p-4"
-    >
-      {/* M3 Modal Bottom Sheet */}
-      <div className="bg-[#FAF8FF] rounded-3xl w-full max-w-md max-h-[92vh] overflow-y-auto shadow-2xl border border-black/5 flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 select-none">
+      {/* Scrim / Backdrop Button (Interactive & accessible dismissal) */}
+      <button
+        type="button"
+        aria-label="Close dialog backdrop"
+        tabIndex={-1}
+        onClick={handleClose}
+        className={`fixed inset-0 bg-black/60 cursor-default border-0 outline-none ${
+          isClosing ? 'animate-m3-backdrop-exit' : 'animate-m3-backdrop-enter'
+        }`}
+      />
+
+      {/* M3 Dialog Card */}
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Diary entry for ${formattedDate}`}
+        className={`relative z-10 bg-[#FAF8FF] rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl border border-black/5 flex flex-col ${
+          isClosing ? 'animate-m3-dialog-exit' : 'animate-m3-dialog-enter'
+        }`}
+      >
 
         {/* Top Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-black/5 sticky top-0 bg-[#FAF8FF]/90 backdrop-blur-md z-10">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-black/5 sticky top-0 bg-[#FAF8FF] z-10">
           <div>
             <h2 className="text-base font-bold text-[#1E1B4B] tracking-tight">{formattedDate}</h2>
             <p className="text-xs font-medium text-[#45464F]">Note &amp; Highlights</p>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             aria-label="Close dialog"
             className="w-12 h-12 flex items-center justify-center rounded-full text-[#1E1B4B] hover:bg-black/5 active:bg-black/10 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4F46E5]"
           >
@@ -218,7 +265,7 @@ export default function DiaryEntry({
             />
           </section>
 
-          {/* Main Actions (M3 Filled + Error Buttons) */}
+          {/* Main Actions */}
           <div className="flex gap-3 pt-1">
             <button
               onClick={handleSave}
@@ -284,7 +331,7 @@ export default function DiaryEntry({
               </ul>
             )}
 
-            {/* Add Event Input & Palette */}
+            {/* Add Event Form */}
             <div className="flex flex-col gap-3 bg-white p-3.5 rounded-2xl border border-black/5 shadow-xs">
               <input
                 type="text"
@@ -380,8 +427,4 @@ DiaryEntry.propTypes = {
   onAddEvent:    PropTypes.func.isRequired,
   onDeleteEvent: PropTypes.func.isRequired,
   onClose:       PropTypes.func.isRequired,
-}
-
-DiaryEntry.defaultProps = {
-  entry: null,
 }

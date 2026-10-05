@@ -8,6 +8,7 @@ import History    from './components/History'
 import Search     from './components/Search'
 import Categories from './components/Categories'
 import DataBackup from './components/DataBackup'
+import DevInspector from './components/DevInspector'
 
 // Authentic M3 Navigation Icons (Filled when active, Outlined when inactive)
 function NavIcon({ name, isActive }) {
@@ -110,57 +111,65 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#A5B4FC] flex flex-col overflow-x-hidden">
 
-      {/* M3 Top App Bar — Luminous Glow Surface (#EEF2FF) */}
+      {/* M3 Top App Bar */}
       <header className="bg-[#EEF2FF] px-4 py-3.5 shadow-md border-b border-black/5">
-        <h1 className="text-lg font-bold text-[#1E1B4B] tracking-tight text-center select-none">
-          📓 My Diary
+        <h1 className="text-lg font-bold text-[#1E1B4B] tracking-tight flex items-center justify-center gap-2.5 select-none">
+          <img
+            src="/diary-icon.webp"
+            alt=""
+            aria-hidden="true"
+            className="w-7 h-7 rounded-lg object-contain shadow-xs"
+          />
+          <span>My Diary</span>
         </h1>
       </header>
 
-      {/* Main Content Area */}
+      {/* Main Content Area with M3 Fade-Through Motion */}
       <main className="flex-1 flex flex-col p-4 max-w-lg mx-auto w-full pb-24">
-        {view === 'calendar' && (
-          <Calendar
-            entries={entries}
-            events={events}
-            onSelectDate={setSelectedDate}
-          />
-        )}
-        {view === 'history' && (
-          <History
-            entries={entries}
-            categories={categories}
-            onSelectDate={handleSelectDate}
-          />
-        )}
-        {view === 'search' && (
-          <Search
-            entries={entries}
-            events={events}
-            categories={categories}
-            onSelectDate={handleSelectDate}
-          />
-        )}
-        {view === 'settings' && (
-          <div className="flex flex-col gap-6">
-            <Categories
-              categories={categories}
+        <div key={view} className="flex-1 flex flex-col animate-m3-fade-through">
+          {view === 'calendar' && (
+            <Calendar
               entries={entries}
               events={events}
-              onAdd={addCategory}
-              onDelete={deleteCategory}
+              onSelectDate={setSelectedDate}
             />
-            <DataBackup
+          )}
+          {view === 'history' && (
+            <History
+              entries={entries}
+              categories={categories}
+              onSelectDate={handleSelectDate}
+            />
+          )}
+          {view === 'search' && (
+            <Search
               entries={entries}
               events={events}
               categories={categories}
-              onImport={importData}
+              onSelectDate={handleSelectDate}
             />
-          </div>
-        )}
+          )}
+          {view === 'settings' && (
+            <div className="flex flex-col gap-6">
+              <Categories
+                categories={categories}
+                entries={entries}
+                events={events}
+                onAdd={addCategory}
+                onDelete={deleteCategory}
+              />
+              <DataBackup
+                entries={entries}
+                events={events}
+                categories={categories}
+                onImport={importData}
+              />
+            </div>
+          )}
+        </div>
       </main>
 
-      {/* M3 Navigation Bar — Height: 80dp (h-20), Pill: 64x32dp (w-16 h-8) */}
+      {/* M3 Navigation Bar */}
       <nav
         aria-label="Main navigation"
         className="fixed bottom-0 left-0 right-0 bg-[#EEF2FF] border-t border-black/5 flex justify-around items-center h-20 px-2 shadow-lg z-30"
@@ -174,7 +183,7 @@ export default function App() {
               aria-current={isActive ? 'page' : undefined}
               className="flex-1 min-h-[48px] flex flex-col items-center justify-center py-1 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4F46E5] rounded-xl"
             >
-              {/* M3 Active Indicator Pill (w-16 h-8 rounded-full) */}
+              {/* M3 Active Indicator Pill */}
               <div
                 className={`w-16 h-8 flex items-center justify-center rounded-full transition-all duration-200 ${
                   isActive
@@ -215,6 +224,9 @@ export default function App() {
           onClose={() => setSelectedDate(null)}
         />
       )}
+
+      {/* Developer Tools */}
+      <DevInspector />
 
     </div>
   )

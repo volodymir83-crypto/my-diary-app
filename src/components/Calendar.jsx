@@ -278,7 +278,7 @@ export default function Calendar({ entries, events, onSelectDate }) {
     }
 
     return (
-      <div className="grid grid-cols-7 gap-1.5 w-full select-none">
+      <div className="grid grid-cols-7 gap-1.5 w-full select-none py-2 px-1" >
         {cells}
       </div>
     )
