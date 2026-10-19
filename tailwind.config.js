@@ -5,6 +5,9 @@ export default {
     "./index.html",
     "./src/**/*.{js,jsx}",
   ],
+  future: {
+    hoverOnlyWhenSupported: true,
+  },
   theme: {
     extend: {
       colors: {

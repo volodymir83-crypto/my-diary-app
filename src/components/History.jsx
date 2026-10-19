@@ -1,12 +1,14 @@
 // src/components/History.jsx
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import PropTypes from 'prop-types'
-import { truncateNote } from '../utils/notePreview'
 import { getColorToken } from '../utils/m3Palette'
 
 function formatDate(dateKey) {
   return new Date(dateKey + 'T00:00:00').toLocaleDateString('default', {
-    weekday: 'short', year: 'numeric', month: 'short', day: 'numeric'
+    weekday: 'short',
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
   })
 }
 
@@ -16,36 +18,82 @@ function daysBetween(dateKeyA, dateKeyB) {
   return Math.round((a - b) / (1000 * 60 * 60 * 24))
 }
 
-export default function History({ entries, categories, onSelectDate }) {
-  const [categoryId, setCategoryId] = useState(categories[0]?.id || '')
+export default function History({
+  events = [],
+  actions = [],
+  entries = {},
+  categories = [],
+  onSelectDate,
+}) {
+  // Normalize action list across new actions and legacy categories
+  const actionList = useMemo(() => {
+    if (actions && actions.length > 0) return actions
+    if (categories && categories.length > 0) {
+      return categories.map((c) => ({ id: c.id, name: c.label, color: c.color }))
+    }
+    return []
+  }, [actions, categories])
 
-  const activeCategory = categories.find(c => c.id === categoryId)
-  const activeToken = activeCategory ? getColorToken(activeCategory.color) : null
+  const [selectedActionId, setSelectedActionId] = useState(actionList[0]?.id || '')
 
-  const filtered = Object.entries(entries)
-    .filter(([, entry]) => entry.category === categoryId)
-    .sort(([a], [b]) => b.localeCompare(a))
+  const activeAction = useMemo(() => {
+    return actionList.find((a) => a.id === selectedActionId) || actionList[0]
+  }, [actionList, selectedActionId])
+
+
+
+  // Filter logged events for this action (with fallback to legacy entries)
+  const displayItems = useMemo(() => {
+    if (!activeAction) return []
+
+    // 1. Check logged day actions in events
+    const matchedEvents = events
+      .filter((e) => e.actionId === activeAction.id || e.title.toLowerCase() === activeAction.name.toLowerCase())
+      .map((e) => ({
+        id: e.id,
+        date: e.date,
+        title: e.title,
+        color: e.color || activeAction.color,
+        description: e.description || '',
+      }))
+
+    if (matchedEvents.length > 0) {
+      return matchedEvents.sort((a, b) => b.date.localeCompare(a.date))
+    }
+
+    // 2. Fallback to legacy entries if no modern events exist yet
+    const legacyMatched = Object.entries(entries)
+      .filter(([, entry]) => entry.category === activeAction.id || entry.category === activeAction.name)
+      .map(([dateKey, entry]) => ({
+        id: `legacy-${dateKey}`,
+        date: dateKey,
+        title: activeAction.name,
+        color: activeAction.color,
+        description: entry.note || '',
+      }))
+
+    return legacyMatched.sort((a, b) => b.date.localeCompare(a.date))
+  }, [events, entries, activeAction])
 
   return (
-    <section aria-label="Workout history" className="flex flex-col">
-
-      {/* M3 Filter Chips Carousel with Bleed Padding (No Border Clipping) */}
+    <section aria-label="Activity history" className="flex flex-col">
+      {/* Action Filter Chips Carousel */}
       <div
         role="tablist"
-        aria-label="Workout categories"
+        aria-label="Filter activities"
         className="-mx-4 px-4 flex gap-2.5 mb-3 overflow-x-auto no-scrollbar py-2 items-center"
       >
-        {categories.map(c => {
-          const isSelected = categoryId === c.id
-          const token = getColorToken(c.color)
+        {actionList.map((action) => {
+          const isSelected = (activeAction?.id || '') === action.id
+          const token = getColorToken(action.color)
 
           return (
             <button
-              key={c.id}
+              key={action.id}
               role="tab"
               aria-selected={isSelected}
-              onClick={() => setCategoryId(c.id)}
-              className={`flex-shrink-0 h-12 min-w-[5.5rem] px-4 rounded-2xl text-xs font-bold tracking-wide transition-all duration-150 flex items-center justify-center gap-2 shadow-xs border focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B] active:scale-95 ${
+              onClick={() => setSelectedActionId(action.id)}
+              className={`flex-shrink-0 h-11 min-w-[5.5rem] px-4 rounded-2xl text-xs font-bold tracking-wide transition-all duration-150 flex items-center justify-center gap-2 shadow-xs border focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B] active:scale-95 ${
                 isSelected
                   ? 'border-black/15 shadow-sm ring-2 ring-[#1E1B4B]/20'
                   : 'bg-[#EEF2FF] text-[#1E1B4B] border-black/5 hover:bg-white'
@@ -53,18 +101,18 @@ export default function History({ entries, categories, onSelectDate }) {
               style={
                 isSelected && token
                   ? {
-                      backgroundColor: token.container,
-                      color: token.onContainer,
+                      backgroundColor: token.hex,
+                      color: token.textColor,
                     }
                   : undefined
               }
             >
               <span
-                className="w-2.5 h-2.5 rounded-full ring-1 ring-white/80 shadow-xs flex-shrink-0"
-                style={{ backgroundColor: token ? token.accent : c.color }}
+                className="w-2.5 h-2.5 rounded-full border border-black/15 flex-shrink-0"
+                style={{ backgroundColor: token ? token.hex : action.color }}
                 aria-hidden="true"
               />
-              <span>{c.label}</span>
+              <span>{action.name}</span>
             </button>
           )
         })}
@@ -72,66 +120,75 @@ export default function History({ entries, categories, onSelectDate }) {
 
       {/* Counter Label */}
       <p className="text-xs font-bold text-[#1E1B4B] mb-3 select-none" aria-live="polite">
-        {filtered.length} {filtered.length === 1 ? 'entry' : 'entries'} found
+        {displayItems.length} {displayItems.length === 1 ? 'entry' : 'entries'} found
       </p>
 
-      {/* Empty State with Vector SVG Icon */}
-      {filtered.length === 0 ? (
+      {/* Empty State */}
+      {displayItems.length === 0 ? (
         <div className="bg-[#FAF8FF] rounded-3xl p-8 text-center border border-black/5 shadow-xs flex flex-col items-center justify-center gap-2">
           <div className="w-14 h-14 rounded-full bg-[#C7D2FE]/30 text-[#4F46E5] flex items-center justify-center mb-1">
             <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
             </svg>
           </div>
-          <p className="text-sm font-bold text-[#1E1B4B]">No {activeCategory?.label || 'workout'} entries yet</p>
-          <p className="text-xs text-[#45464F]">Select dates on the calendar to log this workout.</p>
+          <p className="text-sm font-bold text-[#1E1B4B]">
+            No {activeAction?.name || 'activity'} entries yet
+          </p>
+          <p className="text-xs text-[#45464F]">
+            Select dates on the calendar to log this activity.
+          </p>
         </div>
       ) : (
-        <ul className="flex flex-col gap-3" aria-label={`${activeCategory?.label} entries`}>
-          {filtered.map(([dateKey, entry], index) => {
-            const previousDateKey = index + 1 < filtered.length ? filtered[index + 1][0] : null
-            const daysSincePrevious = previousDateKey ? daysBetween(dateKey, previousDateKey) : null
-            const { text: notePreview, truncated: noteTruncated } = truncateNote(entry.note)
+        /* Logged Activity History Cards */
+        <ul className="flex flex-col gap-3" aria-label={`${activeAction?.name} entries`}>
+          {displayItems.map((item, index) => {
+            const previousDateKey = index + 1 < displayItems.length ? displayItems[index + 1].date : null
+            const daysSincePrevious = previousDateKey ? daysBetween(item.date, previousDateKey) : null
+            const token = getColorToken(item.color)
 
             return (
-              <li key={dateKey}>
+              <li key={item.id}>
                 <button
-                  onClick={() => onSelectDate(dateKey)}
-                  aria-label={`Open entry for ${formatDate(dateKey)}${daysSincePrevious !== null ? `, ${daysSincePrevious} day${daysSincePrevious === 1 ? '' : 's'} since previous entry` : ''}`}
-                  className="w-full text-left bg-[#EEF2FF] hover:bg-white active:scale-98 rounded-2xl p-4 shadow-sm border border-black/5 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B]"
+                  type="button"
+                  onClick={() => onSelectDate(item.date)}
+                  aria-label={`Open entry for ${formatDate(item.date)}${daysSincePrevious !== null ? `, ${daysSincePrevious} day${daysSincePrevious === 1 ? '' : 's'} since last` : ''}`}
+                  className="w-full text-left bg-[#EEF2FF] hover:bg-white active:scale-98 rounded-2xl p-4 shadow-sm border border-black/5 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B] flex flex-col gap-2.5"
                 >
-                  {/* Card Header: Category Badge + Date + Interval */}
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  {/* Card Header: Action Pill + Date + Interval */}
+                  <div className="flex items-center justify-between w-full flex-wrap gap-2">
                     <span
-                      className="w-2.5 h-2.5 rounded-full ring-1 ring-white/80 flex-shrink-0"
-                      style={{ backgroundColor: activeToken ? activeToken.accent : activeCategory?.color }}
-                      aria-hidden="true"
-                    />
-                    <time dateTime={dateKey} className="text-xs font-bold text-[#1E1B4B]">
-                      {formatDate(dateKey)}
-                    </time>
-                    {daysSincePrevious !== null && (
-                      <span className="text-xs font-semibold text-[#45464F]">
-                        &middot; {daysSincePrevious} {daysSincePrevious === 1 ? 'day' : 'days'} since last
-                      </span>
-                    )}
-                    
-                  </div>
+                      className="px-2.5 py-1 rounded-md text-xs font-bold shadow-2xs"
+                      style={{
+                        backgroundColor: token ? token.hex : '#4F46E5',
+                        color: token ? token.textColor : '#FFFFFF',
+                      }}
+                    >
+                      {item.title}
+                    </span>
 
-                  {/* Note Preview */}
-                  {entry.note ? (
-                    <div className="pl-4 border-l-2 border-[#1E1B4B]/20">
-                      <p className="text-sm font-medium text-[#1E1B4B] whitespace-pre-line leading-relaxed">
-                        {notePreview}
-                      </p>
-                      {noteTruncated && (
-                        <span className="inline-block mt-1 text-xs font-bold text-[#4F46E5]">
-                          Read full entry 
+                    <div className="flex items-center gap-1.5 text-xs text-[#45464F]">
+                      <time dateTime={item.date} className="font-bold text-[#1E1B4B]">
+                        {formatDate(item.date)}
+                      </time>
+                      {daysSincePrevious !== null && (
+                        <span className="font-semibold">
+                          &middot; {daysSincePrevious} {daysSincePrevious === 1 ? 'day' : 'days'} since last
                         </span>
                       )}
                     </div>
+                  </div>
+
+                  {/* Session Description */}
+                  {item.description ? (
+                    <div className="pl-3 border-l-2 border-[#1E1B4B]/20">
+                      <p className="text-xs font-medium text-[#1E1B4B] whitespace-pre-wrap leading-relaxed">
+                        {item.description}
+                      </p>
+                    </div>
                   ) : (
-                    <p className="text-xs font-medium text-[#45464F] italic pl-4">No notes logged for this day</p>
+                    <p className="text-xs font-medium text-[#767680] italic pl-3">
+                      No description logged for this session
+                    </p>
                   )}
                 </button>
               </li>
@@ -139,25 +196,14 @@ export default function History({ entries, categories, onSelectDate }) {
           })}
         </ul>
       )}
-
     </section>
   )
 }
 
 History.propTypes = {
-  entries: PropTypes.objectOf(
-    PropTypes.shape({
-      note:     PropTypes.string,
-      color:    PropTypes.string,
-      category: PropTypes.string,
-    })
-  ).isRequired,
-  categories: PropTypes.arrayOf(
-    PropTypes.shape({
-      id:    PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired,
-      color: PropTypes.string.isRequired,
-    })
-  ).isRequired,
+  events: PropTypes.arrayOf(PropTypes.object),
+  actions: PropTypes.arrayOf(PropTypes.object),
+  entries: PropTypes.objectOf(PropTypes.object),
+  categories: PropTypes.arrayOf(PropTypes.object),
   onSelectDate: PropTypes.func.isRequired,
 }

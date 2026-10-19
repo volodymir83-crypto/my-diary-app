@@ -6,8 +6,7 @@ import Calendar   from './components/Calendar'
 import DiaryEntry from './components/DiaryEntry'
 import History    from './components/History'
 import Search     from './components/Search'
-import Categories from './components/Categories'
-import DataBackup from './components/DataBackup'
+import Settings from './components/Settings'
 import DevInspector from './components/DevInspector'
 
 // Authentic M3 Navigation Icons (Filled when active, Outlined when inactive)
@@ -92,16 +91,22 @@ const TABS = [
 export default function App() {
   const {
     entries, events, categories,
-    saveEntry, deleteEntry,
-    addEvent, deleteEvent,
-    addCategory, deleteCategory,
     importData,
+    actions,
+    notes,
+    addAction,
+    updateAction,
+    deleteAction,
+    addDayAction,
+    updateDayAction,
+    deleteDayAction,
+    addNote,
+    updateNote,
+    deleteNote,
   } = useDiary()
 
   const [selectedDate, setSelectedDate] = useState(null)
   const [view,         setView]         = useState('calendar')
-
-  const selectedEntry = selectedDate ? entries[selectedDate] ?? null : null
 
   function handleSelectDate(dateKey) {
     setSelectedDate(dateKey)
@@ -109,24 +114,32 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#A5B4FC] flex flex-col overflow-x-hidden">
+    <div className="h-screen h-[100dvh] bg-[#A5B4FC] flex flex-col overflow-hidden">
 
-      {/* M3 Top App Bar */}
-      <header className="bg-[#EEF2FF] px-4 py-3.5 shadow-md border-b border-black/5">
-        <h1 className="text-lg font-bold text-[#1E1B4B] tracking-tight flex items-center justify-center gap-2.5 select-none">
-          <img
-            src="/diary-icon.webp"
-            alt=""
-            aria-hidden="true"
-            className="w-7 h-7 rounded-lg object-contain shadow-xs"
-          />
-          <span>My Diary</span>
-        </h1>
-      </header>
+      {/* Contextual Top App Bar for secondary views */}
+      {view !== 'calendar' && (
+        <header className="bg-[#EEF2FF] px-4 py-3 shadow-sm border-b border-black/5 flex items-center justify-between select-none flex-shrink-0 h-14">
+          <div className="flex items-center gap-2.5">
+            <img
+              src="/diary-icon.webp"
+              alt=""
+              aria-hidden="true"
+              className="w-7 h-7 rounded-lg object-contain shadow-xs"
+            />
+            <h1 className="text-base font-bold text-[#1E1B4B] tracking-tight">
+              {view === 'history' && 'Workout History'}
+              {view === 'search' && 'Search Diary'}
+              {view === 'settings' && 'Settings'}
+            </h1>
+          </div>
+        </header>
+      )}
 
-      {/* Main Content Area with M3 Fade-Through Motion */}
-      <main className="flex-1 flex flex-col p-4 max-w-lg mx-auto w-full pb-24">
-        <div key={view} className="flex-1 flex flex-col animate-m3-fade-through">
+      {/* Main View Area */}
+      <main className={`flex-1 min-h-0 flex flex-col max-w-lg mx-auto w-full overflow-hidden ${
+        view === 'calendar' ? 'p-0' : 'px-3 pt-3 overflow-y-auto'
+      }`}>
+        <div key={view} className="flex-1 min-h-0 flex flex-col h-full animate-m3-fade-through">
           {view === 'calendar' && (
             <Calendar
               entries={entries}
@@ -136,6 +149,8 @@ export default function App() {
           )}
           {view === 'history' && (
             <History
+              events={events}
+              actions={actions}
               entries={entries}
               categories={categories}
               onSelectDate={handleSelectDate}
@@ -150,21 +165,16 @@ export default function App() {
             />
           )}
           {view === 'settings' && (
-            <div className="flex flex-col gap-6">
-              <Categories
-                categories={categories}
-                entries={entries}
-                events={events}
-                onAdd={addCategory}
-                onDelete={deleteCategory}
-              />
-              <DataBackup
-                entries={entries}
-                events={events}
-                categories={categories}
-                onImport={importData}
-              />
-            </div>
+            <Settings
+              actions={actions}
+              events={events}
+              entries={entries}
+              categories={categories}
+              onAddAction={addAction}
+              onUpdateAction={updateAction}
+              onDeleteAction={deleteAction}
+              onImport={importData}
+            />
           )}
         </div>
       </main>
@@ -172,7 +182,7 @@ export default function App() {
       {/* M3 Navigation Bar */}
       <nav
         aria-label="Main navigation"
-        className="fixed bottom-0 left-0 right-0 bg-[#EEF2FF] border-t border-black/5 flex justify-around items-center h-20 px-2 shadow-lg z-30"
+        className="bg-[#EEF2FF] border-t border-black/5 flex justify-around items-center h-20 px-2 shadow-lg z-30 flex-shrink-0 w-full"
       >
         {TABS.map(tab => {
           const isActive = view === tab.key
@@ -183,7 +193,6 @@ export default function App() {
               aria-current={isActive ? 'page' : undefined}
               className="flex-1 min-h-[48px] flex flex-col items-center justify-center py-1 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4F46E5] rounded-xl"
             >
-              {/* M3 Active Indicator Pill */}
               <div
                 className={`w-16 h-8 flex items-center justify-center rounded-full transition-all duration-200 ${
                   isActive
@@ -193,8 +202,6 @@ export default function App() {
               >
                 <NavIcon name={tab.key} isActive={isActive} />
               </div>
-              
-              {/* M3 Tab Label */}
               <span
                 className={`text-xs mt-1 transition-colors select-none ${
                   isActive
@@ -213,14 +220,17 @@ export default function App() {
       {selectedDate && (
         <DiaryEntry
           dateKey={selectedDate}
-          entry={selectedEntry}
-          entries={entries}
           events={events}
-          categories={categories}
-          onSave={saveEntry}
-          onDelete={deleteEntry}
-          onAddEvent={addEvent}
-          onDeleteEvent={deleteEvent}
+          actions={actions}
+          notes={notes}
+          onAddAction={addAction}
+          onDeleteAction={deleteAction}
+          onAddDayAction={addDayAction}
+          onUpdateDayAction={updateDayAction}
+          onDeleteDayAction={deleteDayAction}
+          onAddNote={addNote}
+          onUpdateNote={updateNote}
+          onDeleteNote={deleteNote}
           onClose={() => setSelectedDate(null)}
         />
       )}

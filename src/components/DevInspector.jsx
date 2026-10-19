@@ -44,7 +44,86 @@ function getEffectiveBackgroundColor(el) {
   return '#FFFFFF'
 }
 
-// Static pure helper: extracts React Fiber component name, hierarchy, and source file
+// Memory cache for raw source files fetched from disk via Vite's `?raw` endpoint
+const sourceCodeCache = new Map()
+
+// Pinpoints the exact physical line on disk by matching tag & attributes in the raw file
+async function resolveExactSourceLine(fileName, approxLine, el) {
+  if (!fileName || !import.meta.env.DEV) return approxLine
+
+  let fetchPath = fileName
+  if (!fetchPath.startsWith('/')) {
+    if (fetchPath.includes('src/')) {
+      fetchPath = '/' + fetchPath.slice(fetchPath.indexOf('src/'))
+    } else {
+      fetchPath = `/src/components/${fetchPath}`
+    }
+  }
+
+  let rawCode = sourceCodeCache.get(fetchPath)
+  if (!rawCode) {
+    try {
+      const res = await fetch(`${fetchPath}?raw`)
+      if (res.ok) {
+        rawCode = await res.text()
+        sourceCodeCache.set(fetchPath, rawCode)
+      }
+    } catch {
+      return Math.max(1, approxLine - 14)
+    }
+  }
+
+  if (!rawCode) return Math.max(1, approxLine - 14)
+
+  const lines = rawCode.split('\n')
+  const tagName = el.tagName.toLowerCase()
+
+  // Clues extracted from the clicked DOM element
+  const ariaLabel = el.getAttribute('aria-label')
+  const placeholder = el.getAttribute('placeholder')
+  const id = el.getAttribute('id')
+  const classAttr = el.getAttribute('class') || ''
+  const distinctClass = classAttr.split(' ').find(c => c.length > 6 && !c.includes('[') && !c.includes('('))
+
+  // Scan in an expanding window around approxLine (within ±35 lines)
+  const windowRadius = 35
+  const startIdx = Math.max(0, approxLine - windowRadius)
+  const endIdx = Math.min(lines.length - 1, approxLine + windowRadius)
+
+  let bestLine = Math.max(1, approxLine - 14)
+  let bestScore = -1
+
+  for (let i = startIdx; i <= endIdx; i++) {
+    const lineContent = lines[i]
+    let score = 0
+
+    // Match tag: <button, <div, <textarea, <h1, etc.
+    if (lineContent.includes(`<${tagName}`) || lineContent.includes(`Component`)) {
+      score += 10
+    }
+    if (ariaLabel && lineContent.includes(ariaLabel.slice(0, 15))) {
+      score += 30
+    }
+    if (placeholder && lineContent.includes(placeholder)) {
+      score += 30
+    }
+    if (id && lineContent.includes(`id="${id}"`)) {
+      score += 30
+    }
+    if (distinctClass && lineContent.includes(distinctClass)) {
+      score += 15
+    }
+
+    if (score > bestScore) {
+      bestScore = score
+      bestLine = i + 1 // 1-indexed editor line number
+    }
+  }
+
+  return bestScore >= 10 ? bestLine : Math.max(1, approxLine - 14)
+}
+
+// Static helper: extracts component hierarchy and raw debug source
 function getFiberData(el) {
   const fiberKey = Object.keys(el).find(
     (k) => k.startsWith('__reactFiber$') || k.startsWith('__reactInternalInstance$')
@@ -52,29 +131,39 @@ function getFiberData(el) {
 
   let componentName = `<${el.tagName.toLowerCase()}>`
   const componentChain = []
-  let sourceFile = null
+  let rawDebug = null
 
   if (fiberKey) {
-    let fiber = el[fiberKey]
-    while (fiber) {
-      if (fiber.type && typeof fiber.type === 'function') {
-        const name = fiber.type.displayName || fiber.type.name
+    const hostFiber = el[fiberKey]
+
+    if (hostFiber?._debugSource) {
+      rawDebug = hostFiber._debugSource
+    }
+
+    let current = hostFiber
+    while (current) {
+      if (!rawDebug && current._debugSource) {
+        rawDebug = current._debugSource
+      }
+
+      if (current.type && typeof current.type === 'function') {
+        const name = current.type.displayName || current.type.name
         if (name && !componentChain.includes(name)) {
           componentChain.push(name)
-          if (!sourceFile && fiber._debugSource) {
-            const fileName = fiber._debugSource.fileName.split('/').pop()
-            sourceFile = `${fileName}:${fiber._debugSource.lineNumber}`
+          if (!rawDebug && current._debugSource) {
+            rawDebug = current._debugSource
           }
         }
       }
-      fiber = fiber.return
+      current = current.return
     }
+
     if (componentChain.length > 0) {
       componentName = `<${componentChain[0]} />`
     }
   }
 
-  return { componentName, componentChain, sourceFile }
+  return { componentName, componentChain, rawDebug }
 }
 
 export default function DevInspector() {
@@ -315,7 +404,7 @@ export default function DevInspector() {
     }
   }, [clearAxeHighlights, runAxeScan])
 
-  // 4. Element Selection
+  // 4. Inspect an element on Click / Tap (Resolves exact disk line number)
   const selectElementForHUD = useCallback(async (el) => {
     if (!el || el.closest('#dev-unified-root')) return
 
@@ -327,7 +416,15 @@ export default function DevInspector() {
       height: rect.height,
     })
 
-    const { componentName, componentChain, sourceFile } = getFiberData(el)
+    const { componentName, componentChain, rawDebug } = getFiberData(el)
+
+    let sourceFile = 'Source unavailable'
+    if (rawDebug) {
+      const fileName = rawDebug.fileName.split('/').pop()
+      const exactLine = await resolveExactSourceLine(rawDebug.fileName, rawDebug.lineNumber, el)
+      sourceFile = `${fileName}:${exactLine}`
+    }
+
     const computed = window.getComputedStyle(el)
 
     const classAttr = el.getAttribute('class') || (typeof el.className === 'string' ? el.className : el.className?.baseVal) || 'None'
@@ -391,7 +488,7 @@ export default function DevInspector() {
       }
 
       const rect = target.getBoundingClientRect()
-      const { componentName } = getFiberData(target)
+      const { componentName, rawDebug } = getFiberData(target)
 
       setHoverRect({
         top: rect.top + window.scrollY,
@@ -399,7 +496,10 @@ export default function DevInspector() {
         width: rect.width,
         height: rect.height,
       })
-      setHoverTag(`${componentName} (${Math.round(rect.width)}×${Math.round(rect.height)})`)
+
+      const fileName = rawDebug ? rawDebug.fileName.split('/').pop() : ''
+      const fileBadge = fileName ? ` · 📍 ${fileName}` : ''
+      setHoverTag(`${componentName}${fileBadge} (${Math.round(rect.width)}×${Math.round(rect.height)})`)
     }
 
     const handlePointerDown = (e) => {
@@ -657,9 +757,20 @@ export default function DevInspector() {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="rounded-lg bg-[#C7D2FE] px-2.5 py-1 font-mono text-[10px] font-bold text-[#1E1B4B]">
-                {selectedInfo.sourceFile}
-              </span>
+              {/* Tap to copy exact source location (e.g. DayCell.jsx:42) */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (selectedInfo.sourceFile && selectedInfo.sourceFile !== 'Source unavailable') {
+                    navigator.clipboard?.writeText(selectedInfo.sourceFile)
+                  }
+                }}
+                title="Tap to copy location"
+                className="rounded-lg bg-[#C7D2FE] hover:bg-[#A5B4FC] active:scale-95 px-2.5 py-1 font-mono text-[10px] font-bold text-[#1E1B4B] shadow-2xs transition flex items-center gap-1"
+              >
+                <span>📍</span>
+                <span>{selectedInfo.sourceFile}</span>
+              </button>
               <button
                 type="button"
                 onClick={() => {
