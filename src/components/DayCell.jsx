@@ -87,7 +87,7 @@ export default function DayCell({
         )}
       </div>
 
-      {/* Middle/Body: Action Pills */}
+      {/* Middle/Body: Action Pills with increased letter-spacing for legibility */}
       <div className="flex flex-col gap-0.5 w-full mt-1 overflow-hidden" aria-hidden="true">
         {visibleEvents.map((event) => {
           const hasCustomColor = Boolean(event.color && event.color !== 'none')
@@ -110,7 +110,7 @@ export default function DayCell({
                       }
                 }
               >
-                <span className="text-[9px] font-bold truncate leading-none text-left w-full whitespace-nowrap">
+                <span className="text-[9px] font-bold tracking-wider truncate leading-none text-left w-full whitespace-nowrap">
                   {event.title}
                 </span>
               </div>
@@ -120,7 +120,7 @@ export default function DayCell({
         {/* 3rd Slot Overflow Badge: "+ N more" */}
         {hasOverflow && (
           <div className="w-full h-3.5 sm:h-4 rounded-md px-1 flex-shrink-0 flex items-center justify-start bg-[#EEF2FF] text-[#1E1B4B] shadow-2xs overflow-hidden">
-            <span className="text-[8.5px] font-bold leading-none text-left w-full whitespace-nowrap truncate">
+            <span className="text-[8.5px] font-bold tracking-wide leading-none text-left w-full whitespace-nowrap truncate">
               +{overflowCount} more
             </span>
           </div>

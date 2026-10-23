@@ -128,26 +128,26 @@ export default function NotesTab({
               key={noteItem.id}
               className="bg-white p-3.5 rounded-2xl border border-black/10 shadow-2xs flex flex-col gap-1 relative"
             >
-              <div className="flex items-center justify-between pr-16">
+              <div className="flex items-center justify-between pr-22">
                 {noteItem.title ? (
-                  <h4 className="text-xs font-bold text-[#1E1B4B]">{noteItem.title}</h4>
+                  <h4 className="text-md font-bold text-[#1E1B4B]">{noteItem.title}</h4>
                 ) : (
                   <span className="text-[10px] text-[#767680] italic">Untitled Note</span>
                 )}
               </div>
 
               {/* Read-Only text content (Capped at 10 lines max) */}
-              <p className="text-xs font-medium text-[#45464F] whitespace-pre-line mt-0.5 max-h-[15em] overflow-y-auto select-text">
+              <p className="text-sm font-medium text-[#45464F] whitespace-pre-line mt-0.5 max-h-[15em] overflow-y-auto select-text pr-20">
                 {noteItem.content}
               </p>
 
-              {/* Action Buttons: Pencil (Edit) & Trash (Delete) */}
-              <div className="absolute top-2.5 right-2 flex items-center gap-1">
+              {/* Action Buttons: 40x40px M3 Touch Targets */}
+              <div className="absolute top-1.5 right-1.5 flex items-center gap-0.5">
                 <button
                   type="button"
                   onClick={() => handleStartEditNote(noteItem)}
                   aria-label={`Edit ${noteItem.title || 'note'}`}
-                  className="w-7 h-7 rounded-lg text-[#767680] hover:text-[#1E1B4B] hover:bg-black/5 active:scale-95 flex items-center justify-center transition"
+                  className="w-10 h-10 rounded-xl text-[#767680] hover:text-[#1E1B4B] hover:bg-black/5 active:scale-90 flex items-center justify-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4F46E5]"
                 >
                   <PencilIcon />
                 </button>
@@ -156,7 +156,7 @@ export default function NotesTab({
                   type="button"
                   onClick={() => handlePromptDeleteNote(noteItem)}
                   aria-label={`Delete ${noteItem.title || 'note'}`}
-                  className="w-7 h-7 rounded-lg text-[#767680] hover:text-[#1E1B4B] hover:bg-black/5 active:scale-95 flex items-center justify-center transition"
+                  className="w-10 h-10 rounded-xl text-[#767680] hover:text-[#1E1B4B] hover:bg-black/5 active:scale-90 flex items-center justify-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#BA1A1A]"
                 >
                   <TrashIcon />
                 </button>

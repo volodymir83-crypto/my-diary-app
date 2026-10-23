@@ -158,9 +158,10 @@ export default function App() {
           )}
           {view === 'search' && (
             <Search
-              entries={entries}
+              actions={actions}
+              notes={notes}
               events={events}
-              categories={categories}
+              entries={entries}
               onSelectDate={handleSelectDate}
             />
           )}
@@ -170,6 +171,7 @@ export default function App() {
               events={events}
               entries={entries}
               categories={categories}
+              notes={notes}
               onAddAction={addAction}
               onUpdateAction={updateAction}
               onDeleteAction={deleteAction}

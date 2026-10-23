@@ -126,7 +126,6 @@ export function useDiary() {
     return newEvent
   }
 
-  // Updates title, color, and description of a day action, and keeps template in sync
   function updateDayAction(id, title, color, description) {
     let linkedActionId = null
 
@@ -143,7 +142,6 @@ export function useDiary() {
       return e
     }))
 
-    // Keep parent template in sync if linked
     if (linkedActionId && (title || color)) {
       setActions(prev => prev.map(a => {
         if (a.id === linkedActionId) {
@@ -223,7 +221,7 @@ export function useDiary() {
     }
   }
 
-  // Legacy Compatibility Bridge
+  // Legacy Bridge
   function saveEntry(dateKey, noteText, color, category) {
     setEntries(prev => ({ ...prev, [dateKey]: { note: noteText, color, category } }))
   }
@@ -253,16 +251,27 @@ export function useDiary() {
     return deleteAction(id)
   }
 
-  function importData({ entries: importedEntries, events: importedEvents, categories: importedCategories }) {
-    if (importedEntries) setEntries(prev => ({ ...prev, ...importedEntries }))
-    if (importedEvents) {
-      setEvents(prev => {
-        const existingIds = new Set(prev.map(e => e.id))
-        const newOnes = importedEvents.filter(e => !existingIds.has(e.id))
-        return [...prev, ...newOnes]
+  // Resilient V1 & V2 Data Import
+  function importData({
+    entries: importedEntries,
+    events: importedEvents,
+    categories: importedCategories,
+    actions: importedActions,
+    notes: importedNotes,
+  }) {
+    // 1. Actions / Templates
+    if (importedActions && Array.isArray(importedActions)) {
+      setActions(prev => {
+        const merged = [...prev]
+        importedActions.forEach(act => {
+          const idx = merged.findIndex(a => a.id === act.id)
+          if (idx === -1) merged.push(act)
+          else merged[idx] = act
+        })
+        return merged
       })
-    }
-    if (importedCategories) {
+    } else if (importedCategories && Array.isArray(importedCategories)) {
+      // V1 fallback
       setActions(prev => {
         const merged = [...prev]
         importedCategories.forEach(cat => {
@@ -272,6 +281,48 @@ export function useDiary() {
         })
         return merged
       })
+    }
+
+    // 2. Events / Day Actions
+    if (importedEvents && Array.isArray(importedEvents)) {
+      setEvents(prev => {
+        const existingIds = new Set(prev.map(e => e.id))
+        const newOnes = importedEvents.filter(e => !existingIds.has(e.id))
+        return [...prev, ...newOnes]
+      })
+    }
+
+    // 3. Multi-Notes
+    if (importedNotes && Array.isArray(importedNotes)) {
+      setNotes(prev => {
+        const existingIds = new Set(prev.map(n => n.id))
+        const newOnes = importedNotes.filter(n => !existingIds.has(n.id))
+        return [...prev, ...newOnes]
+      })
+    } else if (importedEntries) {
+      // V1 fallback: migrate notes from imported entries
+      const migrated = []
+      Object.entries(importedEntries).forEach(([dateKey, entry]) => {
+        if (entry?.note && entry.note.trim().length > 0) {
+          migrated.push({
+            id: `note-${dateKey}-${Date.now()}`,
+            date: dateKey,
+            title: '',
+            content: entry.note.trim(),
+            createdAt: new Date().toISOString(),
+          })
+        }
+      })
+      setNotes(prev => {
+        const existingSignatures = new Set(prev.map(n => `${n.date}:${n.content}`))
+        const fresh = migrated.filter(m => !existingSignatures.has(`${m.date}:${m.content}`))
+        return [...prev, ...fresh]
+      })
+    }
+
+    // 4. Legacy entries map
+    if (importedEntries) {
+      setEntries(prev => ({ ...prev, ...importedEntries }))
     }
   }
 

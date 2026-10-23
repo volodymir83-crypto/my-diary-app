@@ -3,6 +3,7 @@ import { useState, useMemo } from 'react'
 import PropTypes from 'prop-types'
 import { getColorToken } from '../utils/m3Palette'
 
+
 function formatDate(dateKey) {
   return new Date(dateKey + 'T00:00:00').toLocaleDateString('default', {
     weekday: 'short',
@@ -178,12 +179,12 @@ export default function History({
                     </div>
                   </div>
 
-                  {/* Session Description */}
+                  {/* Session Description (Scrollable if > 10 lines, non-editable) */}
                   {item.description ? (
-                    <div className="pl-3 border-l-2 border-[#1E1B4B]/20">
-                      <p className="text-xs font-medium text-[#1E1B4B] whitespace-pre-wrap leading-relaxed">
+                    <div className="w-full pl-3 border-l-2 border-[#1E1B4B]/20">
+                      <div className="text-xs font-medium text-[#1E1B4B] whitespace-pre-wrap leading-relaxed max-h-[15em] overflow-y-auto select-text">
                         {item.description}
-                      </p>
+                      </div>
                     </div>
                   ) : (
                     <p className="text-xs font-medium text-[#767680] italic pl-3">

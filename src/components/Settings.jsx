@@ -41,6 +41,7 @@ export default function Settings({
   events,
   entries,
   categories,
+  notes = [],
   onAddAction,
   onUpdateAction,
   onDeleteAction,
@@ -413,6 +414,8 @@ export default function Settings({
           entries={entries}
           events={events}
           categories={categories}
+          actions={actions}
+          notes={notes}
           onImport={onImport}
         />
       )}
@@ -659,6 +662,7 @@ Settings.propTypes = {
   events:         PropTypes.arrayOf(PropTypes.object).isRequired,
   entries:        PropTypes.objectOf(PropTypes.object).isRequired,
   categories:     PropTypes.arrayOf(PropTypes.object).isRequired,
+  notes:          PropTypes.arrayOf(PropTypes.object),
   onAddAction:    PropTypes.func.isRequired,
   onUpdateAction: PropTypes.func.isRequired,
   onDeleteAction: PropTypes.func.isRequired,

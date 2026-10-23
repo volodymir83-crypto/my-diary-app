@@ -471,12 +471,12 @@ export default function RecurringActionsTab({
                       {event.title}
                     </span>
 
-                    <div className="flex items-center gap-1 flex-shrink-0">
+                    <div className="flex items-center gap-0.5 flex-shrink-0">
                       <button
                         type="button"
                         onClick={() => handleStartEditDescription(event)}
                         aria-label={`Edit description for ${event.title}`}
-                        className="w-7 h-7 rounded-lg text-[#767680] hover:text-[#1E1B4B] hover:bg-black/5 active:scale-95 flex items-center justify-center transition"
+                        className="w-10 h-10 rounded-xl text-[#767680] hover:text-[#1E1B4B] hover:bg-black/5 active:scale-90 flex items-center justify-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4F46E5]"
                       >
                         <PencilIcon />
                       </button>
@@ -485,7 +485,7 @@ export default function RecurringActionsTab({
                         type="button"
                         onClick={() => handlePromptDeleteEvent(event)}
                         aria-label={`Remove ${event.title}`}
-                        className="w-7 h-7 rounded-lg text-[#767680] hover:text-[#1E1B4B] hover:bg-black/5 active:scale-95 flex items-center justify-center transition"
+                        className="w-10 h-10 rounded-xl text-[#767680] hover:text-[#1E1B4B] hover:bg-black/5 active:scale-90 flex items-center justify-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#BA1A1A]"
                       >
                         <TrashIcon />
                       </button>
@@ -494,7 +494,7 @@ export default function RecurringActionsTab({
 
                   {/* Read-Only Description Container (Max 10 lines) */}
                   {hasDesc && (
-                    <div className="text-xs font-medium text-[#45464F] whitespace-pre-wrap max-h-[15em] overflow-y-auto bg-white p-2.5 rounded-xl  border-black/5 select-text">
+                    <div className="text-sm font-medium text-[#45464F] whitespace-pre-wrap max-h-[15em] overflow-y-auto bg-white p-2.5 rounded-xl  border-black/5 select-text">
                       {event.description}
                     </div>
                   )}

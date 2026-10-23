@@ -2,29 +2,39 @@
 import { useState, useRef } from 'react'
 import PropTypes from 'prop-types'
 
-function buildExportPayload(entries, events, categories) {
+function buildExportPayload(entries, events, categories, actions = [], notes = []) {
   return {
     app: 'My Diary',
-    version: 1,
+    version: 2, // Version 2 packages actions and multi-notes
     exportedAt: new Date().toISOString(),
-    entries,
+    actions,
+    notes,
     events,
+    entries,
     categories,
   }
 }
 
-export default function DataBackup({ entries, events, categories, onImport }) {
+export default function DataBackup({
+  entries = {},
+  events = [],
+  categories = [],
+  actions = [],
+  notes = [],
+  onImport,
+}) {
   const [exportedText, setExportedText] = useState(null)
   const [pendingImport, setPendingImport] = useState(null)
   const [importError, setImportError] = useState(null)
   const fileInputRef = useRef(null)
 
-  const entryCount = Object.keys(entries).length
+  // Use accurate counts across modern models and legacy fallbacks
+  const noteCount = notes.length > 0 ? notes.length : Object.keys(entries).length
   const eventCount = events.length
-  const categoryCount = categories.length
+  const actionCount = actions.length > 0 ? actions.length : categories.length
 
   function handleExport() {
-    const payload = buildExportPayload(entries, events, categories)
+    const payload = buildExportPayload(entries, events, categories, actions, notes)
     const json = JSON.stringify(payload, null, 2)
     setExportedText(json)
 
@@ -54,22 +64,35 @@ export default function DataBackup({ entries, events, categories, onImport }) {
       try {
         const data = JSON.parse(reader.result)
         const looksValid =
-          typeof data === 'object' && data !== null &&
-          typeof data.entries === 'object' && data.entries !== null &&
-          Array.isArray(data.events) &&
-          Array.isArray(data.categories)
+          typeof data === 'object' &&
+          data !== null &&
+          (typeof data.entries === 'object' || Array.isArray(data.notes))
 
         if (!looksValid) {
           setImportError("This file does not match a valid My Diary backup format.")
           return
         }
 
+        const summaryNotes = Array.isArray(data.notes)
+          ? data.notes.length
+          : Object.keys(data.entries || {}).length
+
+        const summaryEvents = Array.isArray(data.events)
+          ? data.events.length
+          : 0
+
+        const summaryActions = Array.isArray(data.actions)
+          ? data.actions.length
+          : Array.isArray(data.categories)
+          ? data.categories.length
+          : 0
+
         setPendingImport({
           data,
           summary: {
-            entries: Object.keys(data.entries).length,
-            events: data.events.length,
-            categories: data.categories.length,
+            notes: summaryNotes,
+            events: summaryEvents,
+            actions: summaryActions,
           },
         })
       } catch {
@@ -99,11 +122,12 @@ export default function DataBackup({ entries, events, categories, onImport }) {
         <div>
           <h3 className="text-sm font-bold text-[#1E1B4B]">Export Data</h3>
           <p className="text-xs font-semibold text-[#45464F] mt-0.5">
-            {entryCount} {entryCount === 1 ? 'entry' : 'entries'} · {eventCount} {eventCount === 1 ? 'event' : 'events'} · {categoryCount} {categoryCount === 1 ? 'category' : 'categories'}
+            {noteCount} {noteCount === 1 ? 'note' : 'notes'} · {eventCount} {eventCount === 1 ? 'activity' : 'activities'} · {actionCount} action {actionCount === 1 ? 'template' : 'templates'}
           </p>
         </div>
 
         <button
+          type="button"
           onClick={handleExport}
           className="w-full h-12 bg-[#4F46E5] hover:bg-[#4338CA] active:scale-98 text-white font-bold rounded-full text-sm shadow-sm transition flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#4F46E5]"
         >
@@ -132,7 +156,7 @@ export default function DataBackup({ entries, events, categories, onImport }) {
         <div>
           <h3 className="text-sm font-bold text-[#1E1B4B]">Restore Data</h3>
           <p className="text-xs text-[#45464F] mt-0.5">
-            Select a previous JSON backup to restore. Existing dates with same-day notes will be updated.
+            Select a previous JSON backup to restore. Existing dates with same-day notes and activities will be merged safely.
           </p>
         </div>
 
@@ -166,19 +190,21 @@ export default function DataBackup({ entries, events, categories, onImport }) {
           aria-label="Confirm restore"
           className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center z-50 p-2 sm:p-4"
         >
-          <div className="bg-[#FAF8FF] rounded-3xl w-full max-w-sm shadow-2xl p-5 border border-black/5 flex flex-col gap-4">
+          <div className="bg-[#FAF8FF] rounded-3xl w-full max-w-sm shadow-2xl p-5 border border-black/5 flex flex-col gap-4 animate-m3-dialog-enter">
             <h3 className="text-base font-bold text-[#1E1B4B]">Restore Backup?</h3>
             <p className="text-xs text-[#45464F] leading-relaxed">
-              This backup file contains <strong className="text-[#1E1B4B]">{pendingImport.summary.entries}</strong> entries, <strong className="text-[#1E1B4B]">{pendingImport.summary.events}</strong> events, and <strong className="text-[#1E1B4B]">{pendingImport.summary.categories}</strong> categories. Existing data on identical dates will be overwritten.
+              This backup file contains <strong className="text-[#1E1B4B]">{pendingImport.summary.notes}</strong> notes, <strong className="text-[#1E1B4B]">{pendingImport.summary.events}</strong> activities, and <strong className="text-[#1E1B4B]">{pendingImport.summary.actions}</strong> action templates. It will be merged safely into your local diary.
             </p>
             <div className="flex gap-2.5 pt-1">
               <button
+                type="button"
                 onClick={() => setPendingImport(null)}
                 className="flex-1 h-12 bg-[#EEF2FF] hover:bg-[#C7D2FE] active:scale-98 text-[#1E1B4B] font-bold rounded-full text-xs transition flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B]"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={confirmImport}
                 className="flex-1 h-12 bg-[#4F46E5] hover:bg-[#4338CA] active:scale-98 text-white font-bold rounded-full text-xs shadow-sm transition flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#4F46E5]"
               >
@@ -188,33 +214,15 @@ export default function DataBackup({ entries, events, categories, onImport }) {
           </div>
         </div>
       )}
-
     </section>
   )
 }
 
 DataBackup.propTypes = {
-  entries: PropTypes.objectOf(
-    PropTypes.shape({
-      note:     PropTypes.string,
-      color:    PropTypes.string,
-      category: PropTypes.string,
-    })
-  ).isRequired,
-  events: PropTypes.arrayOf(
-    PropTypes.shape({
-      id:    PropTypes.number.isRequired,
-      date:  PropTypes.string.isRequired,
-      title: PropTypes.string.isRequired,
-      color: PropTypes.string.isRequired,
-    })
-  ).isRequired,
-  categories: PropTypes.arrayOf(
-    PropTypes.shape({
-      id:    PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired,
-      color: PropTypes.string.isRequired,
-    })
-  ).isRequired,
-  onImport: PropTypes.func.isRequired,
+  entries:    PropTypes.objectOf(PropTypes.object),
+  events:     PropTypes.arrayOf(PropTypes.object),
+  categories: PropTypes.arrayOf(PropTypes.object),
+  actions:    PropTypes.arrayOf(PropTypes.object),
+  notes:      PropTypes.arrayOf(PropTypes.object),
+  onImport:   PropTypes.func.isRequired,
 }

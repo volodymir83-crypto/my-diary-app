@@ -275,20 +275,20 @@ export default function Calendar({ entries, events, onSelectDate }) {
           />
         </div>
 
-        {/* Center: Month/Year Level-1 Heading with Chevrons */}
-        <div className="flex items-center justify-center gap-1.5 flex-1 min-w-0 mx-1">
+        {/* Center: Month/Year Level-1 Heading with 48x48dp M3 Chevrons */}
+        <div className="flex items-center justify-center gap-0.5 flex-1 min-w-0 mx-0.5">
           <button
             type="button"
             onClick={scrollToPrev}
             aria-label="Previous month"
-            className="w-10 h-10 flex items-center justify-center rounded-full text-[#1E1B4B] active:scale-90 active:bg-black/10 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B]"
+            className="w-12 h-12 flex items-center justify-center rounded-full text-[#1E1B4B] active:scale-90 active:bg-black/10 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B]"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
             </svg>
           </button>
 
-          <h1 className="text-base font-bold text-[#1E1B4B] tracking-tight truncate px-1 text-center">
+          <h1 className="text-base font-bold text-[#1E1B4B] tracking-tight truncate px-0.5 text-center">
             {monthLabel}
           </h1>
 
@@ -296,7 +296,7 @@ export default function Calendar({ entries, events, onSelectDate }) {
             type="button"
             onClick={scrollToNext}
             aria-label="Next month"
-            className="w-10 h-10 flex items-center justify-center rounded-full text-[#1E1B4B] active:scale-90 active:bg-black/10 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B]"
+            className="w-12 h-12 flex items-center justify-center rounded-full text-[#1E1B4B] active:scale-90 active:bg-black/10 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1E1B4B]"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
@@ -304,12 +304,12 @@ export default function Calendar({ entries, events, onSelectDate }) {
           </button>
         </div>
 
-        {/* Right: Dynamic Tear-Off Calendar Sheet Button */}
+        {/* Right: Dynamic Tear-Off Calendar Sheet Button (48x48dp M3 Touch Target) */}
         <button
           type="button"
           onClick={goToToday}
           aria-label={`Jump to today, ${todayFormatted}`}
-          className="w-10 h-10 flex items-center justify-center rounded-xl active:scale-90 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4F46E5] flex-shrink-0"
+          className="w-12 h-12 flex items-center justify-center rounded-xl active:scale-90 transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4F46E5] flex-shrink-0"
         >
           <div className="w-8 h-9 rounded-lg bg-white border border-black/15 shadow-xs overflow-hidden flex flex-col items-center">
             <div className="w-full h-3 bg-[#4F46E5] text-white text-[7.5px] font-extrabold tracking-wider uppercase flex items-center justify-center">
